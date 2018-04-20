@@ -1,6 +1,6 @@
 import time
 import sys
-sys.path.insert(0, '../IsegSHQ222M')
+sys.path.insert(0, '/home/daq/IsegSHQ222M')
 
 import IsegSHQ222M
 
