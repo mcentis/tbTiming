@@ -29,8 +29,8 @@ try:
         v2 = hv.GetMeasVoltage(2)
         i2 = hv.GetMeasCurrent(2)
         tstamp = datetime.datetime.now().strftime("%s") # unix time stamp, GMT time
-        logFile.write('%s\t%f\t%f\t\t%f\t%f\n' %(tstamp, v1, i1, v2, i2))
-        sys.stdout.write('\r%s Ch1: %f\t%f\t\tCh2: %f\t%f' %(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S"), v1, i1, v2, i2))
+        logFile.write('%s\t%.2f\t%e\t\t%.2f\t%e\n' %(tstamp, v1, i1, v2, i2))
+        sys.stdout.write('\r%s Ch1: %.2f\t%e\t\tCh2: %.2f\t%e' %(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S"), v1, i1, v2, i2))
         sys.stdout.flush()
         time.sleep(2)
 
