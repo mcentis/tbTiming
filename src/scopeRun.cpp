@@ -160,10 +160,10 @@ int main(int argc, char* argv[]){
   char timeStr[80];
   time (&rawtime);
   timeinfo = localtime(&rawtime);
-  strftime(timeStr,sizeof(timeStr),"%Y-%m-%d_%I-%M-%S",timeinfo);
+  strftime(timeStr,sizeof(timeStr),"%Y-%m-%d_%H-%M-%S",timeinfo);
 
   std::cout << "Run number: "<< timeStr << std::endl;
-  
+
   // open binary file for data
   sprintf(comm, "%s/%s_run.dat", argv[2], timeStr);
   fd_bin = open(comm, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
