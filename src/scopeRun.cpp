@@ -89,15 +89,14 @@ void acquisition(){
     //sleep(1);
     //std::cout << '.';
   }while(buf[1] != 'D'); // status ADONE means the acquisition is done
-  std::cout << '\n';
 
   scope->SendCString(":WAVeform:SEGMented:COUNt?\n"); // get how many waveforms are there
   scope->Receive();
   int nSeg = atol(buf);
-  std::cout << "Acquired " << nSeg << " events" << std::endl;
+  //  std::cout << "\rAcquired " << nSeg << " events                    " << std::flush;
   events += nSeg;
 
-  std::cout << "Start download" << std::endl;
+  std::cout << "\rDownloading " << nSeg << " events              " << std::flush;
   
   // download the data
   long int len;// amount of received data
@@ -126,8 +125,8 @@ void acquisition(){
   expected = nSeg * sizeof(double) + 3;
   recWriteScopeData(fd_bin, expected);
 
-  std::cout << "Download complete" << std::endl;
-  std::cout << "Total: " << events << std::endl;
+  //  std::cout << "\rDownload complete               " << std::flush;
+  std::cout << "\rTotal: " << events << " events               " << std::flush;
 
   return;
 }
@@ -163,7 +162,8 @@ int main(int argc, char* argv[]){
   strftime(timeStr,sizeof(timeStr),"%Y-%m-%d_%H-%M-%S",timeinfo);
 
   std::cout << "Run number: "<< timeStr << std::endl;
-
+  std::cout << '\n';
+  
   // open binary file for data
   sprintf(comm, "%s/%s_run.dat", argv[2], timeStr);
   fd_bin = open(comm, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
@@ -194,6 +194,7 @@ int main(int argc, char* argv[]){
       perror("sigpending()");
     
   }while(sigismember(&signalMask, SIGINT) == 0); // the ctrl-c is received (contained in signalMask, 1 is returned)
+  std::cout << '\n';
   
   close(fd_bin); // close binary file
   close(fd_txt); // close text file
