@@ -1,7 +1,7 @@
 #ifndef WAVEFORMPREAMBLE_HH
 #define WAVEFORMPREAMBLE_HH
 
-#include <ctime>
+#include <time.h>
 #include <string>
 
 /**
@@ -35,7 +35,7 @@ private:
   char* _date;
   char* _time; // check if it is the start or the end time of the acquisition
   char* _frameModel; // frame and model number
-  tm* _dateTime; // combine the information from the strings, second precision, unix time (not local)
+  time_t _dateTime; // combine the information from the strings, second precision, unix time (not local)
   int _acquisitionMode; // real time, segmented, ...
   int _completion; // percent of completed time buckets
   int _xUnits; // V, s, dB, ...

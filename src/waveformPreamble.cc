@@ -1,6 +1,7 @@
 #include "waveformPreamble.hh"
 
 #include <sstream>
+//#include <ctime>
 
 waveformPreamble::waveformPreamble()
 {
@@ -42,7 +43,7 @@ bool waveformPreamble::readString(std::string line)
   sstr >> _yDisplayRange; // "dynamic" range shown on scope
   sstr >> _yDisplayOrigin; // voltage orignin on display
   sstr >> _date;
-  sstr >> _time; // check if it is the start or the end time of the acquisition
+  sstr >> _time;
   sstr >> _frameModel; // frame and model number
   sstr >> _acquisitionMode; // real time, segmented, ...
   sstr >> _completion; // percent of completed time buckets
@@ -52,8 +53,15 @@ bool waveformPreamble::readString(std::string line)
   sstr >> _minBWlimit; // lower bandwidth limit
   sstr >> _segmentCount; // how many waveforms were acquired
 
-  // routine to fill this variable
-  //tm* _dateTime; // combine the information from the strings, second precision, unix time (not local)
+  // calculate the unix time stamp check the last part of this block with data
+  std::string date = std::string(_date);
+  std::string time = std::string(_time);
+  tm* timeStruct = NULL;
+  strptime((date+" , "+time).c_str(), "%d %b %Y , %H:%M:%S", timeStruct);
+  time_t tmpTime = mktime(timeStruct);
+  timeStruct = gmtime(&tmpTime);
+  _dateTime = mktime(timeStruct);
   
   return false;
 }
+//"5 MAY 2018 , 19:42:36:46"
