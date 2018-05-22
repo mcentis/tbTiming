@@ -53,12 +53,12 @@ bool waveformPreamble::readString(std::string line)
   sstr >> _minBWlimit; // lower bandwidth limit
   sstr >> _segmentCount; // how many waveforms were acquired
 
-  // calculate the unix time stamp check the last part of this block with data
+  // calculate the unix time stamp
   std::string date = std::string(_date);
   std::string time = std::string(_time);
   tm* timeStruct = NULL;
   strptime((date+" , "+time).c_str(), "%d %b %Y , %H:%M:%S", timeStruct);
-  time_t tmpTime = mktime(timeStruct);
+  time_t tmpTime = mktime(timeStruct); // check if the timestamp at this point is already right
   timeStruct = gmtime(&tmpTime);
   _dateTime = mktime(timeStruct);
   
