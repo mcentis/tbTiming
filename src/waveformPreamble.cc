@@ -7,9 +7,9 @@
 
 waveformPreamble::waveformPreamble()
 {
-  _date = new char(20);
-  _time = new char(20);
-  _frameModel = new char(50);
+  _date = new char[20];
+  _time = new char[20];
+  _frameModel = new char[50];
   
   return;
 }
