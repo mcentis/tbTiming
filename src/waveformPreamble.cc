@@ -16,9 +16,9 @@ waveformPreamble::waveformPreamble()
 
 waveformPreamble::~waveformPreamble()
 {
-  delete _date;
-  delete _time;
-  delete _frameModel;
+  delete[] _date;
+  delete[] _time;
+  delete[] _frameModel;
   
   return;
 }
