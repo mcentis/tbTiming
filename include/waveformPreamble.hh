@@ -13,10 +13,10 @@
 class waveformPreamble{
 public:
   waveformPreamble();
-  bool readString(std::string line);
+  void readString(std::string line);
   ~waveformPreamble();
   
-private:
+  //private: make public members for ease of access and to avoid one getter for each member
   int _format; // data format, ascii, binary, ...
   int _type; // raw, average, ...
   int _points; // number of points in the waveform

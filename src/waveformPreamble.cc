@@ -1,7 +1,9 @@
 #include "waveformPreamble.hh"
 
+#include <string.h>
 #include <sstream>
-//#include <ctime>
+#include <algorithm> // std::replace
+#include <iostream>
 
 waveformPreamble::waveformPreamble()
 {
@@ -21,11 +23,16 @@ waveformPreamble::~waveformPreamble()
   return;
 }
 
-bool waveformPreamble::readString(std::string line)
+void waveformPreamble::readString(std::string line)
 {
+  std::replace(line.begin(), line.end(), ',', ' '); 
+  std::replace(line.begin(), line.end(), '\"', ' '); 
+  
   std::stringstream sstr;
   sstr.clear();
   sstr.str(line);
+
+  char day[5], month[20], year[20];
   
   sstr >> _format; // data format, ascii, binary, ...
   sstr >> _type; // raw, average, ...
@@ -42,7 +49,14 @@ bool waveformPreamble::readString(std::string line)
   sstr >> _xDisplayOrigin; // time orignin on display
   sstr >> _yDisplayRange; // "dynamic" range shown on scope
   sstr >> _yDisplayOrigin; // voltage orignin on display
-  sstr >> _date;
+  sstr >> day;
+  sstr >> month;
+  sstr >> year;
+  strcpy(_date, day);
+  strcat(_date, ",");
+  strcat(_date, month);
+  strcat(_date, ",");
+  strcat(_date, year);
   sstr >> _time;
   sstr >> _frameModel; // frame and model number
   sstr >> _acquisitionMode; // real time, segmented, ...
@@ -52,16 +66,19 @@ bool waveformPreamble::readString(std::string line)
   sstr >> _maxBWlimit; // upper bandwidth limit
   sstr >> _minBWlimit; // lower bandwidth limit
   sstr >> _segmentCount; // how many waveforms were acquired
-
+  
   // calculate the unix time stamp
-  std::string date = std::string(_date);
-  std::string time = std::string(_time);
-  tm* timeStruct = NULL;
-  strptime((date+" , "+time).c_str(), "%d %b %Y , %H:%M:%S", timeStruct);
-  time_t tmpTime = mktime(timeStruct); // check if the timestamp at this point is already right
+  char tmpDateTime[100];
+  strcpy(tmpDateTime, _date);
+  strcat(tmpDateTime, " , ");
+  strcat(tmpDateTime, _time);
+  tm* timeStruct = new tm();
+  strptime(tmpDateTime, "%d,%b,%Y , %H:%M:%S", timeStruct);
+  // next lines to get the right time stamp in GMT time
+  time_t tmpTime = mktime(timeStruct); 
   timeStruct = gmtime(&tmpTime);
   _dateTime = mktime(timeStruct);
   
-  return false;
+  return;
 }
-//"5 MAY 2018 , 19:42:36:46"
+
