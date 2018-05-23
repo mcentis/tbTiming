@@ -6,11 +6,11 @@ EXECUTABLEDIR = bin
 
 # compiler
 CC = g++
-CFLAGS = -c -g -Wall -I$(INCLUDEDIR)
+CFLAGS = -c -g -Wall `root-config --cflags` -I$(INCLUDEDIR)
 
 #linker
 LINKER = g++
-LDFLAGS =
+LDFLAGS = `root-config --libs`
 
 # the := expands the meaning of the expression in the variable assignment
 SOURCES := $(wildcard $(SRCDIR)/*.cc) # take all the .cc files in the src folder
