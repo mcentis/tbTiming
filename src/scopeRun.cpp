@@ -120,7 +120,7 @@ void acquisition(){
       recWriteScopeData(fd_bin, expected);
     }
 
-  // get the time tag of each point (same for all channels)
+  // get the time tag of each segment (same for all channels)
   scope->SendCString(":WAV:SEGM:XLIS? TTAG\n");
   expected = nSeg * sizeof(double) + 3;
   recWriteScopeData(fd_bin, expected);
