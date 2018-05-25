@@ -77,7 +77,8 @@ int main(int argc, char* argv[])
   }
 
   TFile* outFile = TFile::Open(outFileName, "RECREATE");
-  TTree* wavTree = new TTree("waves", "");
+  TTree* wavTree = new TTree("waves", "Waveform data");
+  TTree* preTree = new TTree("preamble", "Waveform preamble data");
   
   UInt_t npt = 1e6; // big number to allocate enough space when initializing channels
   Float_t* channels[outCh]; // waveforms y info
@@ -113,6 +114,12 @@ int main(int argc, char* argv[])
 
   bufSize = (int) testChPre->_segmentCount * 1.5; // 50% "safety factor"
   Double_t* bufTtag = new Double_t[bufSize]; // buffer for time stamps of all segments of one transfer
+  ULong_t dateTime;
+  UInt_t nSeg;
+  preTree->Branch("tansfer", &transfer, "transfer/i");
+  preTree->Branch("nSeg", &nSeg, "nSeg/i");
+  preTree->Branch("dateTime", &dateTime, "dateTime/l");
+  // preTree->Branch("segTimeTag", &bufTtag, "segTimeTag[nSeg]/D"); // excluded from tree since it is not decoded correctly at the moment, also not needed
   
   std::string line; // to read txt file
   bool exitLoop = false;
@@ -151,10 +158,15 @@ int main(int argc, char* argv[])
       }
       if(event % 1000 == 0)
     	std::cout << " Processing event " << event << "               \r" << std::flush;
+
+      nSeg = chPre[0]->_segmentCount;
+      dateTime = chPre[0]->_dateTime;
       
       wavTree->Fill();
       event++;
     } // loop on segments
+
+    preTree->Fill();
     transfer++;
   }
   
@@ -163,7 +175,10 @@ int main(int argc, char* argv[])
   std::cout << event << " events\n";
   std::cout << transfer << " transfers\n";
 
+  preTree->BuildIndex("transfer"); // index the tree using the transfer number to synchronize it with the wavTree in analysis (tree friends)
+  
   wavTree->Write();
+  preTree->Write();
   outFile->Close();
   
   txtFile.close();
