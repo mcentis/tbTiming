@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
   Double_t* bufTtag = new Double_t[bufSize]; // buffer for time stamps of all segments of one transfer
   ULong_t dateTime;
   UInt_t nSeg;
-  preTree->Branch("tansfer", &transfer, "transfer/i");
+  preTree->Branch("transfer", &transfer, "transfer/i");
   preTree->Branch("nSeg", &nSeg, "nSeg/i");
   preTree->Branch("dateTime", &dateTime, "dateTime/l");
   // preTree->Branch("segTimeTag", &bufTtag, "segTimeTag[nSeg]/D"); // excluded from tree since it is not decoded correctly at the moment, also not needed
