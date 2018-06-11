@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
 
   Float_t time[npt]; // waveforms x info
   UInt_t transfer = 0; // "transfer" number from oscilloscope
-  ULong_t event = 0; // event number
+  ULong64_t event = 0; // event number
 
   wavTree->Branch("npt", &npt, "npt/i");
   char brName[100];
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
     wavTree->Branch(brName, channels[i], brNameType);
     }
   wavTree->Branch("time", time, "time[npt]/F");
-  wavTree->Branch("tansfer", &transfer, "transfer/i");
+  wavTree->Branch("transfer", &transfer, "transfer/i");
   wavTree->Branch("event", &event, "event/l");
   
   waveformPreamble* chPre[nCh]; // objects used to read txt file and determine quantities: number of points, number of waveforms, ...
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
 
   bufSize = (int) testChPre->_segmentCount * 1.5; // 50% "safety factor"
   Double_t* bufTtag = new Double_t[bufSize]; // buffer for time stamps of all segments of one transfer
-  ULong_t dateTime;
+  ULong64_t dateTime;
   UInt_t nSeg;
   preTree->Branch("transfer", &transfer, "transfer/i");
   preTree->Branch("nSeg", &nSeg, "nSeg/i");
