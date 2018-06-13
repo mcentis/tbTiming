@@ -35,7 +35,15 @@ SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
     sprintf(name, "riseTime2080Distr_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "20%% to 80%% rise time Ch%d;Rise time [s];Entries", iCh+1);
     _riseTimeDistr[iCh] = new TH1F(name, title, 400, 0, 2e-9); // 5 ps bins
-  }
+
+    sprintf(name, "supSignal_inst%d_Ch%d",_instanceNumber, iCh+1);
+    sprintf(title, "Signal Ch%d;Time [s];Voltage [V]", iCh+1);
+    _supSignal[iCh] = new TH2I(name, title, 121, -2.1e-9, 10.1e-9, 550, -0.1, 1); // 100 ps *  2 mV bins
+
+    sprintf(name, "supSignalScaled_inst%d_Ch%d",_instanceNumber, iCh+1);
+    sprintf(title, "Signal normalized amplitude Ch%d;Time [s];Signal fraction", iCh+1);
+    _supSignalScaled[iCh] = new TH2I(name, title, 121, -2.1e-9, 10.1e-9, 560, -0.2, 1.2); // 100 ps *  0.25 % bins
+}
   
   return;
 }
@@ -48,6 +56,8 @@ SignalProperties::~SignalProperties(){
     delete _ampliDistr[iCh];
     delete _ampliTimeDistr[iCh];
     delete _riseTimeDistr[iCh];
+    delete _supSignal[iCh];
+    delete _supSignalScaled[iCh];
   }
   
   return;
@@ -68,6 +78,12 @@ void SignalProperties::AnalysisAction(){
     t1 = CalcTimeThrLinear2pt(_acl->_sigPoints[iCh], _acl->_sigTime[iCh], 0.2 * _acl->_ampli[iCh], _acl->_baseline[iCh]);
     t2 = CalcTimeThrLinear2pt(_acl->_sigPoints[iCh], _acl->_sigTime[iCh], 0.8 * _acl->_ampli[iCh], _acl->_baseline[iCh]);
     _riseTimeDistr[iCh]->Fill(t2 - t1);
+
+    t1 = CalcTimeThrLinear2pt(_acl->_sigPoints[iCh], _acl->_sigTime[iCh], _acl->_constFrac[iCh] * _acl->_ampli[iCh], _acl->_baseline[iCh]); // use the CFD threhsold of the analysis to "align" the waveforms
+    for(unsigned int ipt = 0; ipt < _acl->_sigPoints[iCh].size(); ++ipt){
+      _supSignal[iCh]->Fill(_acl->_sigTime[iCh][ipt] - t1, _acl->_sigPoints[iCh][ipt] - _acl->_baseline[iCh]);
+      _supSignalScaled[iCh]->Fill(_acl->_sigTime[iCh][ipt] - t1, (_acl->_sigPoints[iCh][ipt] - _acl->_baseline[iCh]) / _acl->_ampli[iCh]);
+    }
   }
   
   return;
@@ -84,6 +100,8 @@ void SignalProperties::Save(TDirectory* parent){
     _ampliDistr[iCh]->Write();
     _ampliTimeDistr[iCh]->Write();
     _riseTimeDistr[iCh]->Write();
+    _supSignal[iCh]->Write();
+    _supSignalScaled[iCh]->Write();
   }
 
   return;

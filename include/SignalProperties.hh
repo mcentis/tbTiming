@@ -1,11 +1,14 @@
 #ifndef SIGNALPROPERTIES_HH
 #define SIGNALPROPERTIES_HH
 
-#include "AnalysisPrototype.hh"
-
 /*
  * Class to store pulse properties
  */
+
+#include "AnalysisPrototype.hh"
+
+#include "TH2.h"
+#include "TProfile.h"
 
 class AnalyzeScopeClass;
 
@@ -24,6 +27,8 @@ private:
   TH1F* _ampliDistr[AnalyzeScopeClass::_nCh];
   TH1F* _ampliTimeDistr[AnalyzeScopeClass::_nCh];
   TH1F* _riseTimeDistr[AnalyzeScopeClass::_nCh];
+  TH2I* _supSignal[AnalyzeScopeClass::_nCh];
+  TH2I* _supSignalScaled[AnalyzeScopeClass::_nCh];
 
 };
 
