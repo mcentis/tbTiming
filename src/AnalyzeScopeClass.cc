@@ -124,7 +124,7 @@ void AnalyzeScopeClass::Analyze(){
   for(unsigned long int i = 0; i < nEntries; ++i){
     _scopeTreeInter->_wavTree->GetEntry(i);
 
-    if(i % 1000 == 0)
+    if(i % 1000 == 0 || i == nEntries)
       std::cout << " Processing event " << i << " / " << nEntries << "                             \r" << std::flush;
 
     // select signal and baseline regions and apply polarity
@@ -149,6 +149,14 @@ void AnalyzeScopeClass::Analyze(){
   }// loop on the events
 
   std::cout << std::endl;
+
+  // process analysis without selection
+  for(std::vector<AnalysisPrototype*>::iterator it = _analysisWithoutCuts.begin(); it != _analysisWithoutCuts.end(); it++)
+    (*it)->Process();
+
+  // processa nalysis on selected events
+  for(std::vector<AnalysisPrototype*>::iterator it = _analysisWCuts.begin(); it != _analysisWCuts.end(); it++)
+    (*it)->Process();
   
   return;
 }
