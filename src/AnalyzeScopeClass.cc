@@ -169,7 +169,7 @@ bool AnalyzeScopeClass::ProcessEvent(){
   bool ret = true;
 
   for(int iCh = 0; iCh < _nCh; ++iCh) // amplitude cut
-    ret &= _ampli[iCh] >= _thr[iCh];
+    ret = ret && _ampli[iCh] >= _thr[iCh];
   
   return ret;
 }
