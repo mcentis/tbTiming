@@ -31,6 +31,10 @@ SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
     sprintf(name, "ampliTimeDistr_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "Time of Max Ch%d;Time of Max [s];Entries", iCh+1);
     _ampliTimeDistr[iCh] = new TH1F(name, title, 3001, -0.1e-9, 300.1e-9); // 100 ps bins
+
+    sprintf(name, "riseTime2080Distr_inst%d_Ch%d",_instanceNumber, iCh+1);
+    sprintf(title, "20%% to 80%% rise time Ch%d;Rise time [s];Entries", iCh+1);
+    _riseTimeDistr[iCh] = new TH1F(name, title, 400, 0, 2e-9); // 5 ps bins
   }
   
   return;
@@ -43,12 +47,15 @@ SignalProperties::~SignalProperties(){
     delete _noiseDistr[iCh];
     delete _ampliDistr[iCh];
     delete _ampliTimeDistr[iCh];
+    delete _riseTimeDistr[iCh];
   }
   
   return;
 }
 
 void SignalProperties::AnalysisAction(){
+  float t1, t2; // used for risetime
+  
   for(int iCh = 0; iCh < _acl->_nCh; ++iCh){
     _baselineDistr[iCh]->Fill(_acl->_baseline[iCh]);
     _noiseSingleEvtDistr[iCh]->Fill(_acl->_noise[iCh]);
@@ -57,6 +64,10 @@ void SignalProperties::AnalysisAction(){
 
     for(std::vector<float>::iterator it = _acl->_blPoints[iCh].begin(); it != _acl->_blPoints[iCh].end(); ++it)
       _noiseDistr[iCh]->Fill(*it - _acl->_baseline[iCh]);
+
+    t1 = CalcTimeThrLinear2pt(_acl->_sigPoints[iCh], _acl->_sigTime[iCh], 0.2 * _acl->_ampli[iCh], _acl->_baseline[iCh]);
+    t2 = CalcTimeThrLinear2pt(_acl->_sigPoints[iCh], _acl->_sigTime[iCh], 0.8 * _acl->_ampli[iCh], _acl->_baseline[iCh]);
+    _riseTimeDistr[iCh]->Fill(t2 - t1);
   }
   
   return;
@@ -72,6 +83,7 @@ void SignalProperties::Save(TDirectory* parent){
     _noiseDistr[iCh]->Write();
     _ampliDistr[iCh]->Write();
     _ampliTimeDistr[iCh]->Write();
+    _riseTimeDistr[iCh]->Write();
   }
 
   return;

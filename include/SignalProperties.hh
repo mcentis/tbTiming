@@ -23,6 +23,7 @@ private:
   TH1F* _noiseDistr[AnalyzeScopeClass::_nCh];
   TH1F* _ampliDistr[AnalyzeScopeClass::_nCh];
   TH1F* _ampliTimeDistr[AnalyzeScopeClass::_nCh];
+  TH1F* _riseTimeDistr[AnalyzeScopeClass::_nCh];
 
 };
 
