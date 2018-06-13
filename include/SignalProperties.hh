@@ -17,6 +17,7 @@ public:
   SignalProperties(AnalyzeScopeClass* acl, const char* dirName);
   ~SignalProperties();
   void AnalysisAction();
+  void Process();
   void Save(TDirectory* parent);
 
 private:
@@ -29,6 +30,9 @@ private:
   TH1F* _riseTimeDistr[AnalyzeScopeClass::_nCh];
   TH2I* _supSignal[AnalyzeScopeClass::_nCh];
   TH2I* _supSignalScaled[AnalyzeScopeClass::_nCh];
+  TProfile* _profSignalScaled[AnalyzeScopeClass::_nCh];
+  TGraph* _signalDerivative[AnalyzeScopeClass::_nCh];
+  TGraph* _signalDerFrac[AnalyzeScopeClass::_nCh];
 
 };
 

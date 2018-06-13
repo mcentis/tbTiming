@@ -42,8 +42,23 @@ SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
 
     sprintf(name, "supSignalScaled_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "Signal normalized amplitude Ch%d;Time [s];Signal fraction", iCh+1);
-    _supSignalScaled[iCh] = new TH2I(name, title, 121, -2.1e-9, 10.1e-9, 560, -0.2, 1.2); // 100 ps *  0.25 % bins
-}
+    _supSignalScaled[iCh] = new TH2I(name, title, 242, -2.1e-9, 10.1e-9, 560, -0.2, 1.2); // 50 ps *  0.25 % bins
+
+    sprintf(name, "signalDerivative_inst%d_Ch%d",_instanceNumber, iCh+1);
+    sprintf(title, "Derivative of normalized signal Ch%d", iCh+1);
+    _signalDerivative[iCh] = new TGraph();
+    _signalDerivative[iCh]->SetName(name);
+    _signalDerivative[iCh]->SetTitle(title);
+    _signalDerivative[iCh]->SetMarkerStyle(20);
+
+    sprintf(name, "signalDerFrac_inst%d_Ch%d",_instanceNumber, iCh+1);
+    sprintf(title, "Derivative of normalized signal Ch%d", iCh+1);
+    _signalDerFrac[iCh] = new TGraph();
+    _signalDerFrac[iCh]->SetName(name);
+    _signalDerFrac[iCh]->SetTitle(title);
+    _signalDerFrac[iCh]->SetMarkerStyle(20);
+
+  }
   
   return;
 }
@@ -58,6 +73,9 @@ SignalProperties::~SignalProperties(){
     delete _riseTimeDistr[iCh];
     delete _supSignal[iCh];
     delete _supSignalScaled[iCh];
+    delete _profSignalScaled[iCh];
+    delete _signalDerivative[iCh];
+    delete _signalDerFrac[iCh];
   }
   
   return;
@@ -89,9 +107,45 @@ void SignalProperties::AnalysisAction(){
   return;
 }
 
+void SignalProperties::Process(){
+  char name[50];
+
+  for(int iCh = 0; iCh < _acl->_nCh; ++iCh){ // get the profiles of the signal
+    sprintf(name, "profileSignalScaled_inst%d_Ch%d",_instanceNumber, iCh+1);
+    
+    _profSignalScaled[iCh] = _supSignalScaled[iCh]->ProfileX(name);
+    _profSignalScaled[iCh]->GetYaxis()->SetTitle("Signal fraction");
+  }
+
+  // derivative of the signal
+  float y1, y2, x1, x2, slope;
+  for(int iCh = 0; iCh < _acl->_nCh; ++iCh)
+    for(int iBin = 1; iBin < _profSignalScaled[iCh]->GetNbinsX(); ++iBin){
+      y1 = _profSignalScaled[iCh]->GetBinContent(iBin);
+      y2 = _profSignalScaled[iCh]->GetBinContent(iBin + 1);
+      x1 = _profSignalScaled[iCh]->GetBinCenter(iBin);
+      x2 = _profSignalScaled[iCh]->GetBinCenter(iBin + 1);
+      slope = (y2-y1)/(x2-x1);
+      _signalDerivative[iCh]->SetPoint(iBin - 1, x1+(x2-x1)/2, slope);
+
+      if(iBin > _profSignalScaled[iCh]->GetMaximumBin()) // select only points before maximum of signal for following graph
+	continue;
+      
+      _signalDerFrac[iCh]->SetPoint(iBin - 1, y1+(y2-y1)/2, slope);
+
+    }
+  
+  return;
+}
+
 void SignalProperties::Save(TDirectory* parent){
   TDirectory* dir = parent->mkdir(_dirName.c_str());
   dir->cd();
+
+  for(int iCh = 0; iCh < _acl->_nCh; ++iCh){
+    PutAxisLabels(_signalDerivative[iCh], "Time [s]", "Signal derivative [1/s]");
+    PutAxisLabels(_signalDerFrac[iCh], "Signal fraction", "Signal derivative [1/s]");
+  }
   
   for(int iCh = 0; iCh < _acl->_nCh; ++iCh){
     _baselineDistr[iCh]->Write();
@@ -102,6 +156,9 @@ void SignalProperties::Save(TDirectory* parent){
     _riseTimeDistr[iCh]->Write();
     _supSignal[iCh]->Write();
     _supSignalScaled[iCh]->Write();
+    _profSignalScaled[iCh]->Write();
+    _signalDerivative[iCh]->Write();
+    _signalDerFrac[iCh]->Write();
   }
 
   return;
