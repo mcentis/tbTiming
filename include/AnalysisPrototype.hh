@@ -19,8 +19,7 @@ class AnalysisPrototype
   virtual ~AnalysisPrototype();
   virtual void AnalysisAction();
   virtual void Save(TDirectory* parent);
-  // virtual void Process();
-  //  virtual void NewSet();
+  virtual void Process();
   
  protected:
   AnalyzeScopeClass* _acl;

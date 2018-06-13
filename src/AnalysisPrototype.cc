@@ -37,15 +37,10 @@ void AnalysisPrototype::Save(TDirectory* parent)
   return;
 }
 
-// void AnalysisPrototype::Process()
-// {
-//  return;
-// }
-
-// void AnalysisPrototype::NewSet()
-// {
-//  return;
-// }
+void AnalysisPrototype::Process()
+{
+ return;
+}
 
 float AnalysisPrototype::CalcTimeThrLinear2pt(const std::vector<float>& tra, const std::vector<float>& tim, float thr, float offset)
 {
