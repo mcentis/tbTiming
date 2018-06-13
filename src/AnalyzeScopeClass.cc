@@ -262,7 +262,7 @@ void AnalyzeScopeClass::RootBeautySettings(){
   return;
 }
 
-void AnalyzeScopeClass::CalcMeanStdDev(std::vector<float> vec, float& mean, float& stdDev, float& Emean, float& EstdDev)
+void AnalyzeScopeClass::CalcMeanStdDev(const std::vector<float>& vec, float& mean, float& stdDev, float& Emean, float& EstdDev)
 {
   if(vec.size() == 0){
     std::cout << "[Warning] AnalyzeScopeClass::CalcMeanStdDev: Too few entries to calculate anything." << std::endl;
@@ -278,7 +278,7 @@ void AnalyzeScopeClass::CalcMeanStdDev(std::vector<float> vec, float& mean, floa
   float sumD2 = 0;
   float sumD4 = 0;
   
-  for(std::vector<float>::iterator it = vec.begin(); it != vec.end(); ++it){
+  for(std::vector<float>::const_iterator it = vec.begin(); it != vec.end(); ++it){
     if(*it != *it) // protect from nan
       continue;
     
@@ -306,7 +306,7 @@ void AnalyzeScopeClass::CalcMeanStdDev(std::vector<float> vec, float& mean, floa
   }
 
   
-  for(std::vector<float>::iterator it = vec.begin(); it != vec.end(); ++it){
+  for(std::vector<float>::const_iterator it = vec.begin(); it != vec.end(); ++it){
     if(*it != *it) // protect from nan
       continue;
 

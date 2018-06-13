@@ -20,6 +20,10 @@ SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
     sprintf(title, "Single Event Noise Ch%d;Noise [V];Entries", iCh+1);
     _noiseSingleEvtDistr[iCh] = new TH1F(name, title, 400, -0.05, 0.05); // 0.25 mV bins 
 
+    sprintf(name, "noiseDistr_inst%d_Ch%d",_instanceNumber, iCh+1);
+    sprintf(title, "Noise Distribution Ch%d;Noise [V];Entries", iCh+1);
+    _noiseDistr[iCh] = new TH1F(name, title, 400, -0.05, 0.05); // 0.25 mV bins 
+
     sprintf(name, "ampliDistr_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "Amplitude Ch%d;Amplitude [V];Entries", iCh+1);
     _ampliDistr[iCh] = new TH1F(name, title, 550, -0.1, 1); // 2 mV bins 
@@ -36,6 +40,7 @@ SignalProperties::~SignalProperties(){
   for(int iCh = 0; iCh < _acl->_nCh; ++iCh){
     delete _baselineDistr[iCh];
     delete _noiseSingleEvtDistr[iCh];
+    delete _noiseDistr[iCh];
     delete _ampliDistr[iCh];
     delete _ampliTimeDistr[iCh];
   }
@@ -49,6 +54,9 @@ void SignalProperties::AnalysisAction(){
     _noiseSingleEvtDistr[iCh]->Fill(_acl->_noise[iCh]);
     _ampliDistr[iCh]->Fill(_acl->_ampli[iCh]);
     _ampliTimeDistr[iCh]->Fill(_acl->_ampliTime[iCh]);
+
+    for(std::vector<float>::iterator it = _acl->_blPoints[iCh].begin(); it != _acl->_blPoints[iCh].end(); ++it)
+      _noiseDistr[iCh]->Fill(*it - _acl->_baseline[iCh]);
   }
   
   return;
@@ -61,6 +69,7 @@ void SignalProperties::Save(TDirectory* parent){
   for(int iCh = 0; iCh < _acl->_nCh; ++iCh){
     _baselineDistr[iCh]->Write();
     _noiseSingleEvtDistr[iCh]->Write();
+    _noiseDistr[iCh]->Write();
     _ampliDistr[iCh]->Write();
     _ampliTimeDistr[iCh]->Write();
   }

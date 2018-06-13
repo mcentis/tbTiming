@@ -20,6 +20,7 @@ private:
   // arrays containing the pointers to the histograms
   TH1F* _baselineDistr[AnalyzeScopeClass::_nCh];
   TH1F* _noiseSingleEvtDistr[AnalyzeScopeClass::_nCh];
+  TH1F* _noiseDistr[AnalyzeScopeClass::_nCh];
   TH1F* _ampliDistr[AnalyzeScopeClass::_nCh];
   TH1F* _ampliTimeDistr[AnalyzeScopeClass::_nCh];
 

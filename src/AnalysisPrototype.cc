@@ -47,16 +47,19 @@ void AnalysisPrototype::Save(TDirectory* parent)
 //  return;
 // }
 
-float AnalysisPrototype::CalcTimeThrLinear2pt(Float_t* tra, Float_t* tim, Int_t n, int pol, float thr, float offset)
+float AnalysisPrototype::CalcTimeThrLinear2pt(const std::vector<float>& tra, const std::vector<float>& tim, float thr, float offset)
 {
-  int i = 0;
-  for(; i < n; ++i)
-    if(pol * tra[i] - offset > thr) break;
+  unsigned int i = 0;
+  for(; i < tra.size(); ++i)
+    if(tra[i] - offset > thr) break;
+
+  if(i == 0) // intercept i == 0 to avoid problems below
+    return tim[0];
 
   // linear interpolation between points below and above thr
   // y = a x + b
-  float y1 = pol * tra[i] - offset;
-  float y2 = pol * tra[i - 1] - offset;
+  float y1 = tra[i] - offset;
+  float y2 = tra[i - 1] - offset;
   float x1 = tim[i];
   float x2 = tim[i - 1];
 
