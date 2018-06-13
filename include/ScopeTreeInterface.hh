@@ -12,7 +12,8 @@ public:
   
 private:
   TFile* _inFile; // input file
-  
+
+public: // made these public since they are needed by the analysis objects
   TTree* _wavTree; // tree with waveform data
   UInt_t _npt; // number of points in each waveform
   Float_t* _channels[_inCh]; // data from the scope channels (vertical)

@@ -10,6 +10,8 @@ int main(int argc, char* argv[])
   }
 
   AnalyzeScopeClass* analysisCl = new AnalyzeScopeClass(argv[1], argv[2]);
+  analysisCl->Analyze();
+  analysisCl->Save(); // necessary to save to avoid error in execution
   
   return 0;
 }

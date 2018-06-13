@@ -1,4 +1,6 @@
 #include "AnalyzeScopeClass.hh"
+#include "AnalysisPrototype.hh"
+#include "SignalProperties.hh"
 
 #include <string>
 #include <sstream>
@@ -18,7 +20,7 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   
   _ampli = new float[_nCh];
   _ampliTime = new float[_nCh];
-  _base = new float[_nCh];
+  _baseline = new float[_nCh];
   _noise = new float[_nCh];
   
   _blStart = new float[_nCh];
@@ -29,22 +31,51 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
 
   GetCfgValues();
   
+  // open root file
+  std::string outFileName = inFileName;
+  std::string rep = std::string("/"); // to be replaced
+  std::string add = std::string("/analyzed"); // replacement
+  std::string::size_type i = outFileName.find_last_of(rep);
+  
+  if(i != std::string::npos)
+    outFileName.replace(i, rep.length(), add);
+  else
+    outFileName.insert(0, add);
+  
+  _outFile = TFile::Open(outFileName.c_str(), "RECREATE");
+  
+  // create analysis objects without cuts
+  _analysisWithoutCuts.push_back(new SignalProperties(this, "SignalPropertiesNoCuts"));
+
+  // create analysis objects with cuts
+  _analysisWCuts.push_back(new SignalProperties(this, "SignalProperties"));
+
   return;
 }
 
 AnalyzeScopeClass::~AnalyzeScopeClass(){
+  _outFile->Close();
+
   delete[] _pol;
   delete[] _thr;
   delete[] _constFrac;
   delete[] _ampli;
   delete[] _ampliTime;
-  delete[] _base;
+  delete[] _baseline;
   delete[] _noise;
   delete[] _blStart;
   delete[] _blStop;
   delete[] _sigStart;
   delete[] _sigStop;
-  
+
+  // delete analysis without cuts objects
+  for(std::vector<AnalysisPrototype*>::iterator it = _analysisWithoutCuts.begin(); it != _analysisWithoutCuts.end(); it++)
+    delete *it;
+
+  // delete analysis with cuts objects
+  for(std::vector<AnalysisPrototype*>::iterator it = _analysisWCuts.begin(); it != _analysisWCuts.end(); it++)
+    delete *it;
+
   return;
 }
 
@@ -53,7 +84,7 @@ void AnalyzeScopeClass::GetCfgValues(){
 
   ReadCfgArray(_pol, "polarity");
   for(int i = 0; i < _nCh; ++i) // make sure that polarity is normalized
-    _pol[i] /= _pol[i]; 
+    _pol[i] /= fabs(_pol[i]); 
   
   ReadCfgArray(_thr, "threshold");
   ReadCfgArray(_constFrac, "fractionThr");
@@ -78,6 +109,105 @@ template<typename T> void AnalyzeScopeClass::ReadCfgArray(T* parameter, const ch
     getline(strstr, sub, ',');
     parameter[i] = atof(sub.c_str());
   }
+  
+  return;
+}
+
+void AnalyzeScopeClass::Analyze(){
+  unsigned long int nEntries = _scopeTreeInter->_wavTree->GetEntries();
+
+ 
+  for(unsigned long int i = 0; i < nEntries; ++i){
+    _scopeTreeInter->_wavTree->GetEntry(i);
+
+    if(i % 1000 == 0)
+      std::cout << " Processing event " << i << " / " << nEntries << "                             \r" << std::flush;
+
+    // calculate pulses properties
+    CalcBaselineNoise();
+    CalcAmpliTime();
+
+    // analysis without selection
+    for(std::vector<AnalysisPrototype*>::iterator it = _analysisWithoutCuts.begin(); it != _analysisWithoutCuts.end(); it++)
+      (*it)->AnalysisAction();
+    
+    // apply cuts
+    if(ProcessEvent() == false)
+      continue;
+
+    // analysis on selected events
+    for(std::vector<AnalysisPrototype*>::iterator it = _analysisWCuts.begin(); it != _analysisWCuts.end(); it++)
+      (*it)->AnalysisAction();
+    
+  }// loop on the events
+
+  std::cout << std::endl;
+  
+  return;
+}
+
+void AnalyzeScopeClass::Save(){
+  // analysis without cuts
+  for(std::vector<AnalysisPrototype*>::iterator it = _analysisWithoutCuts.begin(); it != _analysisWithoutCuts.end(); it++)
+    (*it)->Save(_outFile);
+
+  // analysis with cuts
+  for(std::vector<AnalysisPrototype*>::iterator it = _analysisWCuts.begin(); it != _analysisWCuts.end(); it++)
+    (*it)->Save(_outFile);
+
+  return;
+}
+
+bool AnalyzeScopeClass::ProcessEvent(){
+  bool ret = true;
+
+  for(int iCh = 0; iCh < _nCh; ++iCh) // amplitude cut
+    ret &= _ampli[iCh] >= _thr[iCh];
+  
+  return ret;
+}
+
+void AnalyzeScopeClass::CalcBaselineNoise(){
+  std::vector<float> blPoints; // points of the baseline
+  float blErr;
+  float noiseErr;
+  
+  for(int iCh = 0; iCh < _nCh; ++iCh){ // loop on channels
+    for(unsigned int ipt = 0; ipt < _scopeTreeInter->_npt; ++ipt){ // select the points for baseline calculation
+      if(_scopeTreeInter->_time[ipt] > _blStop[iCh]) // interrupt the loop for points after the end of the region for the calculation
+	break;
+      if(_scopeTreeInter->_time[ipt] >= _blStart[iCh])
+	blPoints.push_back(_scopeTreeInter->_channels[iCh][ipt]);
+    }
+
+    CalcMeanStdDev(blPoints, _baseline[iCh], _noise[iCh], blErr, noiseErr);
+    _baseline[iCh] *= _pol[iCh];
+    
+    blPoints.clear();
+  }
+
+  return;
+}
+
+void AnalyzeScopeClass::CalcAmpliTime(){ // CalcBaselineNoise() should be called before this function to define the baseline
+  
+  for(int iCh = 0; iCh < _nCh; ++iCh){ // loop on channels
+    _ampli[iCh] = -5; // start value
+    _ampliTime[iCh] = -5; // start value
+
+    for(unsigned int ipt = 0; ipt < _scopeTreeInter->_npt; ++ipt){ // loop on the points to find amlitude
+      if(_scopeTreeInter->_time[ipt] > _sigStop[iCh]) // interrupt the loop for points after the end of the region for the calculation
+	break;
+      if(_scopeTreeInter->_time[ipt] < _sigStart[iCh])
+	continue;
+
+      if(_scopeTreeInter->_channels[iCh][ipt] * _pol[iCh] > _ampli[iCh]){
+	_ampli[iCh] = _scopeTreeInter->_channels[iCh][ipt] * _pol[iCh];
+	_ampliTime[iCh] = _scopeTreeInter->_time[ipt];
+      }
+    }
+    _ampli[iCh] -= _baseline[iCh];
+  }  
   
   return;
 }
@@ -108,6 +238,73 @@ void AnalyzeScopeClass::RootBeautySettings(){
   gStyle->SetMarkerStyle(20);  
   gStyle->SetMarkerSize(2);
   gStyle->SetLineWidth(2);
+
+  return;
+}
+
+void AnalyzeScopeClass::CalcMeanStdDev(std::vector<float> vec, float& mean, float& stdDev, float& Emean, float& EstdDev)
+{
+  if(vec.size() == 0){
+    std::cout << "[Warning] AnalyzeScopeClass::CalcMeanStdDev: Too few entries to calculate anything." << std::endl;
+    mean = 0;
+    stdDev = 0;
+    Emean = 0;
+    EstdDev = 0;
+    return;
+  }
+
+  int N = 0;
+  float sum = 0;
+  float sumD2 = 0;
+  float sumD4 = 0;
+  
+  for(std::vector<float>::iterator it = vec.begin(); it != vec.end(); ++it){
+    if(*it != *it) // protect from nan
+      continue;
+    
+    sum += *it;
+    N++;
+  }
+  
+  if(N == 0){
+    std::cout << "[Warning] AnalyzeScopeClass::CalcMeanStdDev: Too few entries to calculate anything due to NAN." << std::endl;
+    mean = 0;
+    stdDev = 0;
+    Emean = 0;
+    EstdDev = 0;
+    return;
+  }
+
+  mean = sum / N; // mean
+
+  if(N < 4){ // to avoid strange results in error calculation
+    std::cout << "[Warning] AnalyzeScopeClass::CalcMeanStdDev: Too few entries to calculate uncertainties. Mean " << mean << std::endl;
+    stdDev = 0;
+    Emean = 0;
+    EstdDev = 0;
+    return;
+  }
+
+  
+  for(std::vector<float>::iterator it = vec.begin(); it != vec.end(); ++it){
+    if(*it != *it) // protect from nan
+      continue;
+
+    sumD2 += pow(*it - mean, 2);
+    sumD4 += pow(*it - mean, 4);
+  }
+
+  float mu2 = sumD2 / (N - 1); // second central moment (variance)
+  
+  stdDev = sqrt(mu2); // std dev
+
+  Emean = sqrt(mu2/N);
+
+  float mu4 = ( pow(N, 2)*sumD4/(N-1) - 3*(2*N-3)*pow(mu2, 2) ) / (pow(N, 2)-3*N+3); // fourth central moment from http://mathworld.wolfram.com/SampleCentralMoment.html
+
+  float Emu2 = sqrt((pow(N-1, 2) * mu4 - (N-1) * (N-3) * pow(mu2, 2)) / pow(N, 3)); // std dev of mu2 distribution from http://mathworld.wolfram.com/SampleVarianceDistribution.html
+    
+  EstdDev = 0.5 * Emu2 / sqrt(mu2);
 
   return;
 }
