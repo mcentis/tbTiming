@@ -120,12 +120,11 @@ template<typename T> void AnalyzeScopeClass::ReadCfgArray(T* parameter, const ch
 void AnalyzeScopeClass::Analyze(){
   unsigned long int nEntries = _scopeTreeInter->_wavTree->GetEntries();
 
- 
   for(unsigned long int i = 0; i < nEntries; ++i){
     _scopeTreeInter->_wavTree->GetEntry(i);
 
-    if(i % 1000 == 0 || i == nEntries)
-      std::cout << " Processing event " << i << " / " << nEntries << "                             \r" << std::flush;
+    if((i+1) % 1000 == 0 || (i+1) == nEntries)
+      std::cout << " Processing event " << i+1 << " / " << nEntries << "                             \r" << std::flush;
 
     // select signal and baseline regions and apply polarity
     SelectPoints();
@@ -150,6 +149,8 @@ void AnalyzeScopeClass::Analyze(){
 
   std::cout << std::endl;
 
+  std::cout << "Processing analysis objects" << std::endl;
+  
   // process analysis without selection
   for(std::vector<AnalysisPrototype*>::iterator it = _analysisWithoutCuts.begin(); it != _analysisWithoutCuts.end(); it++)
     (*it)->Process();
