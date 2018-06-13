@@ -29,6 +29,10 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _sigStart = new float[_nCh];
   _sigStop = new float[_nCh];
 
+  _blPoints = new std::vector<float>[_nCh];
+  _sigPoints = new std::vector<float>[_nCh];
+  _sigTime = new std::vector<float>[_nCh];
+  
   GetCfgValues();
   
   // open root file
@@ -123,6 +127,9 @@ void AnalyzeScopeClass::Analyze(){
     if(i % 1000 == 0)
       std::cout << " Processing event " << i << " / " << nEntries << "                             \r" << std::flush;
 
+    // select signal and baseline regions and apply polarity
+    SelectPoints();
+    
     // calculate pulses properties
     CalcBaselineNoise();
     CalcAmpliTime();
@@ -167,24 +174,42 @@ bool AnalyzeScopeClass::ProcessEvent(){
   return ret;
 }
 
-void AnalyzeScopeClass::CalcBaselineNoise(){
-  std::vector<float> blPoints; // points of the baseline
-  float blErr;
-  float noiseErr;
-  
-  for(int iCh = 0; iCh < _nCh; ++iCh){ // loop on channels
+void AnalyzeScopeClass::SelectPoints(){
+  for(int iCh = 0; iCh < _nCh; ++iCh){ // empty the vectors
+    _blPoints[iCh].clear();
+    _sigPoints[iCh].clear();
+    _sigTime[iCh].clear();
+  }
+
+  for(int iCh = 0; iCh < _nCh; ++iCh){ // fill baseline vectors
     for(unsigned int ipt = 0; ipt < _scopeTreeInter->_npt; ++ipt){ // select the points for baseline calculation
       if(_scopeTreeInter->_time[ipt] > _blStop[iCh]) // interrupt the loop for points after the end of the region for the calculation
 	break;
       if(_scopeTreeInter->_time[ipt] >= _blStart[iCh])
-	blPoints.push_back(_scopeTreeInter->_channels[iCh][ipt]);
+	_blPoints[iCh].push_back(_scopeTreeInter->_channels[iCh][ipt] * _pol[iCh]);
     }
-
-    CalcMeanStdDev(blPoints, _baseline[iCh], _noise[iCh], blErr, noiseErr);
-    _baseline[iCh] *= _pol[iCh];
-    
-    blPoints.clear();
   }
+
+  for(int iCh = 0; iCh < _nCh; ++iCh){ // fill signal vectors
+    for(unsigned int ipt = 0; ipt < _scopeTreeInter->_npt; ++ipt){ // select the signal points
+      if(_scopeTreeInter->_time[ipt] > _sigStop[iCh]) // interrupt the loop for points after the end of the signal region
+	break;
+      if(_scopeTreeInter->_time[ipt] >= _sigStart[iCh]){
+	_sigPoints[iCh].push_back(_scopeTreeInter->_channels[iCh][ipt] * _pol[iCh]);
+	_sigTime[iCh].push_back(_scopeTreeInter->_time[ipt]);
+      }
+    }
+  }
+    
+  return;
+}
+
+void AnalyzeScopeClass::CalcBaselineNoise(){
+  float blErr;
+  float noiseErr;
+  
+  for(int iCh = 0; iCh < _nCh; ++iCh) // loop on channels
+    CalcMeanStdDev(_blPoints[iCh], _baseline[iCh], _noise[iCh], blErr, noiseErr);
 
   return;
 }
@@ -195,17 +220,12 @@ void AnalyzeScopeClass::CalcAmpliTime(){ // CalcBaselineNoise() should be called
     _ampli[iCh] = -5; // start value
     _ampliTime[iCh] = -5; // start value
 
-    for(unsigned int ipt = 0; ipt < _scopeTreeInter->_npt; ++ipt){ // loop on the points to find amlitude
-      if(_scopeTreeInter->_time[ipt] > _sigStop[iCh]) // interrupt the loop for points after the end of the region for the calculation
-	break;
-      if(_scopeTreeInter->_time[ipt] < _sigStart[iCh])
-	continue;
-
-      if(_scopeTreeInter->_channels[iCh][ipt] * _pol[iCh] > _ampli[iCh]){
-	_ampli[iCh] = _scopeTreeInter->_channels[iCh][ipt] * _pol[iCh];
-	_ampliTime[iCh] = _scopeTreeInter->_time[ipt];
+    for(unsigned int ipt = 0; ipt < _sigPoints[iCh].size(); ++ipt)
+      if(_sigPoints[iCh][ipt] > _ampli[iCh]){
+	_ampli[iCh] = _sigPoints[iCh][ipt];
+	_ampliTime[iCh] = _sigTime[iCh][ipt];
       }
-    }
+
     _ampli[iCh] -= _baseline[iCh];
   }  
   

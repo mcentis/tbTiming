@@ -24,6 +24,7 @@ private:
 
   void CalcBaselineNoise(); // calculate baseline and noise for an event
   void CalcAmpliTime(); // calculate signal amplitude and time at which the maximum occours
+  void SelectPoints(); // fills the vectors containing the waveform points of signal and baseline
   
   ConfigFileReader* _cfg;
 
@@ -53,6 +54,12 @@ public: // made these public since they are needed by the analysis objects
   float* _ampliTime; // position of the signal maximum
   float* _baseline; // baseline
   float* _noise; // event noises
+
+  // containers for baseline, signal points and signal time
+  std::vector<float>* _blPoints;
+  std::vector<float>* _sigPoints;
+  std::vector<float>* _sigTime;
+  
   
 };
 
