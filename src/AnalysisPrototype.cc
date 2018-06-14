@@ -66,6 +66,13 @@ float AnalysisPrototype::CalcTimeThrLinear2pt(const std::vector<float>& tra, con
 
 void AnalysisPrototype::LinearReg(const std::vector<float>& x, const std::vector<float>& y, float& a, float& b)
 {
+  if(x.size() != y.size() || x.size() < 2 || y.size() < 2){
+    a = -999;
+    b = -999;
+    std::cout << "[Warning] AnalysisPrototype::LinearReg Problem with the input vectors" << std::endl;
+    return;
+  }
+  
   // calculate linear regression y = a x + b
   float xmean = 0; // mean x
   float ymean = 0; // mean y
