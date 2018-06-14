@@ -100,6 +100,24 @@ void AnalyzeScopeClass::GetCfgValues(){
   ReadCfgArray(_sigStart, "signalStart");
   ReadCfgArray(_sigStop, "signalStop");
 
+  ReadTimingPairs();
+  
+  return;
+}
+
+void AnalyzeScopeClass::ReadTimingPairs(){
+  std::string valStr = _cfg->GetValue("timingPairs");
+  std::stringstream strstr(valStr);
+  std::string sub;
+  
+  while(strstr.good()){
+    getline(strstr, sub, ',');
+    _timingPairs.push_back(sub);
+  }
+
+  //for(std::vector<std::string>::iterator it = _timingPairs.begin(); it != _timingPairs.end(); ++it)
+  //  std::cout << *it << std::endl;
+  
   return;
 }
 
