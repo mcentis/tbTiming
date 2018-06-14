@@ -64,6 +64,40 @@ float AnalysisPrototype::CalcTimeThrLinear2pt(const std::vector<float>& tra, con
   return (thr - b)/a;
 }
 
+void AnalysisPrototype::LinearReg(const std::vector<float>& x, const std::vector<float>& y, float& a, float& b)
+{
+  // calculate linear regression y = a x + b
+  float xmean = 0; // mean x
+  float ymean = 0; // mean y
+  float x2mean = 0; // mean x*x
+  float xymean = 0; // mean x*y
+
+  std::vector<float>::const_iterator itx = x.begin();
+  std::vector<float>::const_iterator ity = y.begin();
+  for(; itx != x.end() && ity != y.end(); ++itx, ++ity){
+    xmean += *itx;
+    ymean += *ity;
+    x2mean += *itx * *itx;
+    xymean += *itx * *ity;
+
+    //std::cout << *itx << "   " << *ity << std::endl;
+  }
+
+  xmean /= x.size();
+  ymean /= x.size();
+  x2mean /= x.size();
+  xymean /= x.size();
+
+  a = (xymean - xmean * ymean) / (x2mean - xmean * xmean);
+  b = (ymean * x2mean - xymean * xmean) / (x2mean - xmean * xmean);
+
+  //std::cout << x.size() << std::endl;
+  //std::cout << xmean << "   " << ymean << "   " << x2mean << "   " << xymean << std::endl;  
+  //std::cout << a << "   " << b << std::endl;
+  
+  return;
+}
+
 void AnalysisPrototype::PutAxisLabels(TGraph* gr, const char* xtitle, const char* ytitle)
 {
   TCanvas* can = new TCanvas();
