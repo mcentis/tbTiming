@@ -42,7 +42,7 @@ SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
 
     sprintf(name, "supSignalScaled_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "Signal normalized amplitude Ch%d;Time [s];Signal fraction", iCh+1);
-    _supSignalScaled[iCh] = new TH2I(name, title, 242, -2.1e-9, 10.1e-9, 560, -0.2, 1.2); // 50 ps *  0.25 % bins
+    _supSignalScaled[iCh] = new TH2I(name, title, 121, -2.1e-9, 10.1e-9, 560, -0.2, 1.2); // 100 ps *  0.25 % bins
 
     sprintf(name, "signalDerivative_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "Derivative of normalized signal Ch%d", iCh+1);
@@ -83,6 +83,9 @@ SignalProperties::~SignalProperties(){
 
 void SignalProperties::AnalysisAction(){
   float t1, t2; // used for risetime
+  //float y1, y2, x1, x2, a, b; // used for signal superimposition
+  float a, b; // used for signal superimposition
+  std::vector<float> x, y;
   
   for(int iCh = 0; iCh < _acl->_nCh; ++iCh){
     _baselineDistr[iCh]->Fill(_acl->_baseline[iCh]);
@@ -97,11 +100,34 @@ void SignalProperties::AnalysisAction(){
     t2 = CalcTimeThrLinear2pt(_acl->_sigPoints[iCh], _acl->_sigTime[iCh], 0.8 * _acl->_ampli[iCh], _acl->_baseline[iCh]);
     _riseTimeDistr[iCh]->Fill(t2 - t1);
 
-    t1 = CalcTimeThrLinear2pt(_acl->_sigPoints[iCh], _acl->_sigTime[iCh], _acl->_constFrac[iCh] * _acl->_ampli[iCh], _acl->_baseline[iCh]); // use the CFD threhsold of the analysis to "align" the waveforms
-    for(unsigned int ipt = 0; ipt < _acl->_sigPoints[iCh].size(); ++ipt){
-      _supSignal[iCh]->Fill(_acl->_sigTime[iCh][ipt] - t1, _acl->_sigPoints[iCh][ipt] - _acl->_baseline[iCh]);
-      _supSignalScaled[iCh]->Fill(_acl->_sigTime[iCh][ipt] - t1, (_acl->_sigPoints[iCh][ipt] - _acl->_baseline[iCh]) / _acl->_ampli[iCh]);
+    // signal superimposition, use leading edge interpolation to 0 to "align" the signals, selection of points between t1 and t2
+    x.clear();
+    y.clear();
+    std::vector<float>::iterator itTime = _acl->_sigTime[iCh].begin();
+    std::vector<float>::iterator itVolt = _acl->_sigPoints[iCh].begin();
+    for(; itTime != _acl->_sigTime[iCh].end() && itVolt != _acl->_sigPoints[iCh].end(); ++itTime, ++itVolt){
+      if(*itTime > t2)
+	break;
+      if(*itTime < t1)
+	continue;
+      
+      x.push_back(*itTime);
+      y.push_back(*itVolt - _acl->_baseline[iCh]);
     }
+
+    if(x.size() >= 2){
+      LinearReg(x, y, a, b); // y = ax + b
+      t1 = -b/a; // 0 crossing time
+
+      itTime = _acl->_sigTime[iCh].begin();
+      itVolt = _acl->_sigPoints[iCh].begin();
+      for(; itTime != _acl->_sigTime[iCh].end() && itVolt != _acl->_sigPoints[iCh].end(); ++itTime, ++itVolt){
+
+	_supSignal[iCh]->Fill(*itTime - t1, *itVolt - _acl->_baseline[iCh]);
+	_supSignalScaled[iCh]->Fill(*itTime - t1, (*itVolt - _acl->_baseline[iCh]) / _acl->_ampli[iCh]);
+      }
+    }
+
   }
   
   return;
