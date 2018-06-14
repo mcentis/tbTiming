@@ -37,22 +37,22 @@ SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
     _riseTimeDistr[iCh] = new TH1F(name, title, 400, 0, 2e-9); // 5 ps bins
 
     sprintf(name, "supSignal_inst%d_Ch%d",_instanceNumber, iCh+1);
-    sprintf(title, "Signal Ch%d;Time [s];Voltage [V]", iCh+1);
+    sprintf(title, "Signal Ch%d (at least 2 pt between 20%% and 80%%);Time [s];Voltage [V]", iCh+1);
     _supSignal[iCh] = new TH2I(name, title, 121, -2.1e-9, 10.1e-9, 550, -0.1, 1); // 100 ps *  2 mV bins
 
     sprintf(name, "supSignalScaled_inst%d_Ch%d",_instanceNumber, iCh+1);
-    sprintf(title, "Signal normalized amplitude Ch%d;Time [s];Signal fraction", iCh+1);
+    sprintf(title, "Signal normalized amplitude Ch%d (at least 2 pt between 20%% and 80%%);Time [s];Signal fraction", iCh+1);
     _supSignalScaled[iCh] = new TH2I(name, title, 121, -2.1e-9, 10.1e-9, 560, -0.2, 1.2); // 100 ps *  0.25 % bins
 
     sprintf(name, "signalDerivative_inst%d_Ch%d",_instanceNumber, iCh+1);
-    sprintf(title, "Derivative of normalized signal Ch%d", iCh+1);
+    sprintf(title, "Derivative of normalized signal Ch%d (at least 2 pt between 20%% and 80%%)", iCh+1);
     _signalDerivative[iCh] = new TGraph();
     _signalDerivative[iCh]->SetName(name);
     _signalDerivative[iCh]->SetTitle(title);
     _signalDerivative[iCh]->SetMarkerStyle(20);
 
     sprintf(name, "signalDerFrac_inst%d_Ch%d",_instanceNumber, iCh+1);
-    sprintf(title, "Derivative of normalized signal Ch%d", iCh+1);
+    sprintf(title, "Derivative of normalized signal Ch%d (at least 2 pt between 20%% and 80%%)", iCh+1);
     _signalDerFrac[iCh] = new TGraph();
     _signalDerFrac[iCh]->SetName(name);
     _signalDerFrac[iCh]->SetTitle(title);
