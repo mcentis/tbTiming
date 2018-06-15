@@ -83,9 +83,8 @@ SignalProperties::~SignalProperties(){
 
 void SignalProperties::AnalysisAction(){
   float t1, t2; // used for risetime
-  //float y1, y2, x1, x2, a, b; // used for signal superimposition
   float a, b; // used for signal superimposition
-  std::vector<float> x, y;
+  std::vector<float> x, y; // used for signal superimposition
   
   for(int iCh = 0; iCh < _acl->_nCh; ++iCh){
     _baselineDistr[iCh]->Fill(_acl->_baseline[iCh]);

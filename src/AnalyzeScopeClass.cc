@@ -1,6 +1,7 @@
 #include "AnalyzeScopeClass.hh"
 #include "AnalysisPrototype.hh"
 #include "SignalProperties.hh"
+#include "TimingFixedFraction.hh"
 
 #include <string>
 #include <sstream>
@@ -54,6 +55,7 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
 
   // create analysis objects with cuts
   _analysisWCuts.push_back(new SignalProperties(this, "SignalProperties"));
+  _analysisWCuts.push_back(new TimingFixedFraction(this, "TimingFixedFraction"));
 
   return;
 }

@@ -27,6 +27,8 @@ private:
 
   // arrays containing the pointers to the histograms
   std::vector<TH1F*> _timeDiff;
+
+  float* _t; // time when the threhsold is crossed
   
 };
 
