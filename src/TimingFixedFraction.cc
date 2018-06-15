@@ -20,7 +20,7 @@ TimingFixedFraction::TimingFixedFraction(AnalyzeScopeClass* acl, const char* dir
 
   // add instance number to names to avoid error of histos with same names
   for(int i = 0; i < _nPairs; ++i){
-    sprintf(name, "deltaTDistr_inst%d_Ch%d-Ch%d",_instanceNumber , _pairs[i][0]+1, _pairs[i][1]+1);
+    sprintf(name, "deltaTDistr_inst%d_Ch%d_Ch%d",_instanceNumber , _pairs[i][0]+1, _pairs[i][1]+1);
     sprintf(title, "#Delta t Ch%d-Ch%d;#Delta t [s];Entries" , _pairs[i][0]+1, _pairs[i][1]+1);
     _timeDiff.push_back(new TH1F(name, title, 5000, -10e-9, 10e-9)); // 4 ps bins 
   }
