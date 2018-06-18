@@ -25,6 +25,7 @@ private:
   void CalcBaselineNoise(); // calculate baseline and noise for an event
   void CalcAmpliTime(); // calculate signal amplitude and time at which the maximum occours
   void SelectPoints(); // fills the vectors containing the waveform points of signal and baseline
+  void CalcRiseTimeT0(); // calculate 20 to 80% rise time and t0 using linear regression of rising edge between 20 and 80 %
   
   ConfigFileReader* _cfg;
 
@@ -43,6 +44,7 @@ public: // made these public since they are needed by the analysis objects
   int* _pol; // array with the signal polarity for each channel
   float* _thr; // array with signal thresholds in V to select events in the analysis
   float* _maxAmpliCut; // array with maximum amplitude cut in V to select events in the analysis, to avoid saturation
+  float* _maxRiseTimeCut; // array with maximum risetime cut in s to select events in the analysis, to reject noise
   float* _constFrac; // array with CFD thresholds for ananlysis with fixed thresholds
 
   float* _blStart; // start of interval used to calculate baseline and noise
@@ -58,6 +60,9 @@ public: // made these public since they are needed by the analysis objects
   float* _ampliTime; // position of the signal maximum
   float* _baseline; // baseline
   float* _noise; // event noises
+  float* _riseTime; // event 20 to 80% risetime
+  int* _risePoints; // number of points in the rising edge between 20 and 80%
+  float* _linRegT0; // event time used to "align" the events while using signal superimposition, could be used for additional cuts (e.g. ampli after t0), this variable is set to 10 if there are not enough points to determine the t0 using a linear regression
 
   // containers for baseline, signal points and signal time
   std::vector<float>* _blPoints;

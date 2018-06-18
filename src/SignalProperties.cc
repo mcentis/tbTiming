@@ -100,10 +100,6 @@ SignalProperties::~SignalProperties(){
 }
 
 void SignalProperties::AnalysisAction(){
-  float t1, t2; // used for risetime
-  float a, b; // used for signal superimposition
-  std::vector<float> x, y; // used for signal superimposition
-  
   for(int iCh = 0; iCh < _acl->_nCh; ++iCh){
     _baselineDistr[iCh]->Fill(_acl->_baseline[iCh]);
     _noiseSingleEvtDistr[iCh]->Fill(_acl->_noise[iCh]);
@@ -113,40 +109,20 @@ void SignalProperties::AnalysisAction(){
     for(std::vector<float>::iterator it = _acl->_blPoints[iCh].begin(); it != _acl->_blPoints[iCh].end(); ++it)
       _noiseDistr[iCh]->Fill(*it - _acl->_baseline[iCh]);
 
-    t1 = CalcTimeThrLinear2pt(_acl->_sigPoints[iCh], _acl->_sigTime[iCh], 0.2 * _acl->_ampli[iCh], _acl->_baseline[iCh]);
-    t2 = CalcTimeThrLinear2pt(_acl->_sigPoints[iCh], _acl->_sigTime[iCh], 0.8 * _acl->_ampli[iCh], _acl->_baseline[iCh]);
-    _riseTimeDistr[iCh]->Fill(t2 - t1);
+    _riseTimeDistr[iCh]->Fill(_acl->_riseTime[iCh]);
 
     // signal superimposition, use leading edge interpolation to 0 to "align" the signals, selection of points between t1 and t2
-    x.clear();
-    y.clear();
-    std::vector<float>::iterator itTime = _acl->_sigTime[iCh].begin();
-    std::vector<float>::iterator itVolt = _acl->_sigPoints[iCh].begin();
-    for(; itTime != _acl->_sigTime[iCh].end() && itVolt != _acl->_sigPoints[iCh].end(); ++itTime, ++itVolt){
-      if(*itTime > t2)
-	break;
-      if(*itTime < t1)
-	continue;
-      
-      x.push_back(*itTime);
-      y.push_back(*itVolt - _acl->_baseline[iCh]);
-    }
-
-    _risePointsDistr[iCh]->Fill(x.size());
+    _risePointsDistr[iCh]->Fill(_acl->_risePoints[iCh]);
     
-    if(x.size() >= 2){
-      LinearReg(x, y, a, b); // y = ax + b
-      t1 = -b/a; // 0 crossing time
-
-      itTime = _acl->_sigTime[iCh].begin();
-      itVolt = _acl->_sigPoints[iCh].begin();
+    if(_acl->_linRegT0[iCh] < 10){ // if the t0 is properly determined
+      std::vector<float>::iterator itTime = _acl->_sigTime[iCh].begin();
+      std::vector<float>::iterator itVolt = _acl->_sigPoints[iCh].begin();
       for(; itTime != _acl->_sigTime[iCh].end() && itVolt != _acl->_sigPoints[iCh].end(); ++itTime, ++itVolt){
-
-	_supSignal[iCh]->Fill(*itTime - t1, *itVolt - _acl->_baseline[iCh]);
-	_supSignalScaled[iCh]->Fill(*itTime - t1, (*itVolt - _acl->_baseline[iCh]) / _acl->_ampli[iCh]);
+	
+	_supSignal[iCh]->Fill(*itTime - _acl->_linRegT0[iCh], *itVolt - _acl->_baseline[iCh]);
+	_supSignalScaled[iCh]->Fill(*itTime - _acl->_linRegT0[iCh], (*itVolt - _acl->_baseline[iCh]) / _acl->_ampli[iCh]);
       }
     }
-
   }
   
   return;

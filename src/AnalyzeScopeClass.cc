@@ -18,12 +18,16 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _pol = new int[_nCh];
   _thr = new float[_nCh];
   _maxAmpliCut = new float[_nCh];
+  _maxRiseTimeCut = new float[_nCh];
   _constFrac = new float[_nCh];
   
   _ampli = new float[_nCh];
   _ampliTime = new float[_nCh];
   _baseline = new float[_nCh];
   _noise = new float[_nCh];
+  _riseTime = new float[_nCh];
+  _risePoints = new int[_nCh];
+  _linRegT0 = new float[_nCh];
   
   _blStart = new float[_nCh];
   _blStop = new float[_nCh];
@@ -66,11 +70,15 @@ AnalyzeScopeClass::~AnalyzeScopeClass(){
   delete[] _pol;
   delete[] _thr;
   delete[] _maxAmpliCut;
+  delete[] _maxRiseTimeCut;
   delete[] _constFrac;
   delete[] _ampli;
   delete[] _ampliTime;
   delete[] _baseline;
   delete[] _noise;
+  delete[] _riseTime;
+  delete[] _risePoints;
+  delete[] _linRegT0;
   delete[] _blStart;
   delete[] _blStop;
   delete[] _sigStart;
@@ -96,6 +104,7 @@ void AnalyzeScopeClass::GetCfgValues(){
   
   ReadCfgArray(_thr, "threshold");
   ReadCfgArray(_maxAmpliCut, "maxAmpli");
+  ReadCfgArray(_maxRiseTimeCut, "maxRiseTime");
   ReadCfgArray(_constFrac, "fractionThr");
   ReadCfgArray(_blStart, "baseStart");
   ReadCfgArray(_blStop, "baseStop");
@@ -155,7 +164,8 @@ void AnalyzeScopeClass::Analyze(){
     // calculate pulses properties
     CalcBaselineNoise();
     CalcAmpliTime();
-
+    CalcRiseTimeT0();
+    
     // analysis without selection
     for(std::vector<AnalysisPrototype*>::iterator it = _analysisWithoutCuts.begin(); it != _analysisWithoutCuts.end(); it++)
       (*it)->AnalysisAction();
@@ -203,6 +213,7 @@ bool AnalyzeScopeClass::ProcessEvent(){
   for(int iCh = 0; iCh < _nCh; ++iCh){ // amplitude cut, threshold and maximum amplitude
     ret = ret && _ampli[iCh] >= _thr[iCh];
     ret = ret && _ampli[iCh] <= _maxAmpliCut[iCh];
+    ret = ret && _riseTime[iCh] <= _maxRiseTimeCut[iCh];
   }
 
   return ret;
@@ -285,6 +296,45 @@ void AnalyzeScopeClass::CalcAmpliTime(){ // CalcBaselineNoise() should be called
     
     _ampli[iCh] -= _baseline[iCh];
   }  
+  
+  return;
+}
+
+void AnalyzeScopeClass::CalcRiseTimeT0(){ // CalcBaselineNoise() and CalcAmpliTime() should be called before this function to define neede quantities
+  float t1, t2; // used for risetime
+  float a, b; // used for t0 with linear regression
+  std::vector<float> x, y; // used for t0 with linear regression
+
+  for(int iCh = 0; iCh < _nCh; ++iCh){
+    t1 = AnalysisPrototype::CalcTimeThrLinear2pt(_sigPoints[iCh], _sigTime[iCh], 0.2 * _ampli[iCh], _baseline[iCh]);
+    t2 = AnalysisPrototype::CalcTimeThrLinear2pt(_sigPoints[iCh], _sigTime[iCh], 0.8 * _ampli[iCh], _baseline[iCh]);
+
+    _riseTime[iCh] = t2 -t1;
+    
+    x.clear();
+    y.clear();
+    std::vector<float>::iterator itTime = _sigTime[iCh].begin();
+    std::vector<float>::iterator itVolt = _sigPoints[iCh].begin();
+    for(; itTime != _sigTime[iCh].end() && itVolt != _sigPoints[iCh].end(); ++itTime, ++itVolt){
+      if(*itTime > t2)
+	break;
+      if(*itTime < t1)
+	continue;
+      
+      x.push_back(*itTime);
+      y.push_back(*itVolt - _baseline[iCh]);
+    }
+    
+    _risePoints[iCh] = x.size();
+    
+    if(_risePoints[iCh] >= 2){
+      AnalysisPrototype::LinearReg(x, y, a, b); // y = ax + b
+      _linRegT0[iCh] = -b/a; // 0 crossing time
+    }
+    else
+      _linRegT0[iCh] = 10; // if not enough points for linear regression
+    
+  }
   
   return;
 }
