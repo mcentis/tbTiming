@@ -22,6 +22,7 @@ class AnalysisPrototype
   virtual void Process();
 
   // utilities
+  static void CalcMeanStdDev(const std::vector<float>& vec, float& mean, float& stdDev, float& Emean, float& EstdDev);
   static float CalcTimeThrLinear2pt(const std::vector<float>& tra, const std::vector<float>& tim, float thr, float offset); // all agruments (except time) need to be already corrected for polarity
   static void LinearReg(const std::vector<float>& x, const std::vector<float>& y, float& a, float& b); // linear regression y = ax + b
 

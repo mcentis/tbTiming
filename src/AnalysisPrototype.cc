@@ -105,6 +105,73 @@ void AnalysisPrototype::LinearReg(const std::vector<float>& x, const std::vector
   return;
 }
 
+void AnalysisPrototype::CalcMeanStdDev(const std::vector<float>& vec, float& mean, float& stdDev, float& Emean, float& EstdDev)
+{
+  if(vec.size() == 0){
+    std::cout << "[Warning] AnalyzeScopeClass::CalcMeanStdDev: Too few entries to calculate anything." << std::endl;
+    mean = 0;
+    stdDev = 0;
+    Emean = 0;
+    EstdDev = 0;
+    return;
+  }
+
+  int N = 0;
+  float sum = 0;
+  float sumD2 = 0;
+  float sumD4 = 0;
+  
+  for(std::vector<float>::const_iterator it = vec.begin(); it != vec.end(); ++it){
+    if(*it != *it) // protect from nan
+      continue;
+    
+    sum += *it;
+    N++;
+  }
+  
+  if(N == 0){
+    std::cout << "[Warning] AnalyzeScopeClass::CalcMeanStdDev: Too few entries to calculate anything due to NAN." << std::endl;
+    mean = 0;
+    stdDev = 0;
+    Emean = 0;
+    EstdDev = 0;
+    return;
+  }
+
+  mean = sum / N; // mean
+
+  if(N < 4){ // to avoid strange results in error calculation
+    std::cout << "[Warning] AnalyzeScopeClass::CalcMeanStdDev: Too few entries to calculate uncertainties. Mean " << mean << std::endl;
+    stdDev = 0;
+    Emean = 0;
+    EstdDev = 0;
+    return;
+  }
+
+  
+  for(std::vector<float>::const_iterator it = vec.begin(); it != vec.end(); ++it){
+    if(*it != *it) // protect from nan
+      continue;
+
+    sumD2 += pow(*it - mean, 2);
+    sumD4 += pow(*it - mean, 4);
+  }
+
+  float mu2 = sumD2 / (N - 1); // second central moment (variance)
+  
+  stdDev = sqrt(mu2); // std dev
+
+  Emean = sqrt(mu2/N);
+
+  float mu4 = ( pow(N, 2)*sumD4/(N-1) - 3*(2*N-3)*pow(mu2, 2) ) / (pow(N, 2)-3*N+3); // fourth central moment from http://mathworld.wolfram.com/SampleCentralMoment.html
+
+  float Emu2 = sqrt((pow(N-1, 2) * mu4 - (N-1) * (N-3) * pow(mu2, 2)) / pow(N, 3)); // std dev of mu2 distribution from http://mathworld.wolfram.com/SampleVarianceDistribution.html
+    
+  EstdDev = 0.5 * Emu2 / sqrt(mu2);
+
+  return;
+}
+
 void AnalysisPrototype::PutAxisLabels(TGraph* gr, const char* xtitle, const char* ytitle)
 {
   TCanvas* can = new TCanvas();

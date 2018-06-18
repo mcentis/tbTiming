@@ -36,8 +36,6 @@ private:
   
 public: // made these public since they are needed by the analysis objects
   static const int _nCh = ScopeTreeInterface::_inCh; // use the number of channels from the interface class
-
-  static void CalcMeanStdDev(const std::vector<float>& vec, float& mean, float& stdDev, float& Emean, float& EstdDev); // could be needed by the analysis objects
   
   ScopeTreeInterface* _scopeTreeInter;
   
