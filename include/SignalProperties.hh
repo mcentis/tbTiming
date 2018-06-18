@@ -28,6 +28,7 @@ private:
   TH1F* _ampliDistr[AnalyzeScopeClass::_nCh];
   TH1F* _ampliTimeDistr[AnalyzeScopeClass::_nCh];
   TH1F* _riseTimeDistr[AnalyzeScopeClass::_nCh];
+  TH1I* _risePointsDistr[AnalyzeScopeClass::_nCh];
   TH2I* _supSignal[AnalyzeScopeClass::_nCh];
   TH2I* _supSignalScaled[AnalyzeScopeClass::_nCh];
   TProfile* _profSignalScaled[AnalyzeScopeClass::_nCh];

@@ -36,6 +36,10 @@ SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
     sprintf(title, "20%% to 80%% rise time Ch%d;Rise time [s];Entries", iCh+1);
     _riseTimeDistr[iCh] = new TH1F(name, title, 400, 0, 2e-9); // 5 ps bins
 
+    sprintf(name, "risePointsDistr_inst%d_Ch%d",_instanceNumber, iCh+1);
+    sprintf(title, "Number of points between 20%% and 80%% amplitude Ch%d;Number of points;Entries", iCh+1);
+    _risePointsDistr[iCh] = new TH1I(name, title, 21, -0.5, 20.5);
+
     sprintf(name, "supSignal_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "Signal Ch%d (at least 2 pt between 20%% and 80%%);Time [s];Voltage [V]", iCh+1);
     _supSignal[iCh] = new TH2I(name, title, 121, -2.1e-9, 10.1e-9, 550, -0.1, 1); // 100 ps *  2 mV bins
@@ -71,6 +75,7 @@ SignalProperties::~SignalProperties(){
     delete _ampliDistr[iCh];
     delete _ampliTimeDistr[iCh];
     delete _riseTimeDistr[iCh];
+    delete _risePointsDistr[iCh];
     delete _supSignal[iCh];
     delete _supSignalScaled[iCh];
     delete _profSignalScaled[iCh];
@@ -114,6 +119,8 @@ void SignalProperties::AnalysisAction(){
       y.push_back(*itVolt - _acl->_baseline[iCh]);
     }
 
+    _risePointsDistr[iCh]->Fill(x.size());
+    
     if(x.size() >= 2){
       LinearReg(x, y, a, b); // y = ax + b
       t1 = -b/a; // 0 crossing time
@@ -179,6 +186,7 @@ void SignalProperties::Save(TDirectory* parent){
     _ampliDistr[iCh]->Write();
     _ampliTimeDistr[iCh]->Write();
     _riseTimeDistr[iCh]->Write();
+    _risePointsDistr[iCh]->Write();
     _supSignal[iCh]->Write();
     _supSignalScaled[iCh]->Write();
     _profSignalScaled[iCh]->Write();
