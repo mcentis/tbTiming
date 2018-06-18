@@ -22,18 +22,18 @@ public:
 
 private:
   // arrays containing the pointers to the histograms
-  TH1F* _baselineDistr[AnalyzeScopeClass::_nCh];
-  TH1F* _noiseSingleEvtDistr[AnalyzeScopeClass::_nCh];
-  TH1F* _noiseDistr[AnalyzeScopeClass::_nCh];
-  TH1F* _ampliDistr[AnalyzeScopeClass::_nCh];
-  TH1F* _ampliTimeDistr[AnalyzeScopeClass::_nCh];
-  TH1F* _riseTimeDistr[AnalyzeScopeClass::_nCh];
-  TH1I* _risePointsDistr[AnalyzeScopeClass::_nCh];
-  TH2I* _supSignal[AnalyzeScopeClass::_nCh];
-  TH2I* _supSignalScaled[AnalyzeScopeClass::_nCh];
-  TProfile* _profSignalScaled[AnalyzeScopeClass::_nCh];
-  TGraph* _signalDerivative[AnalyzeScopeClass::_nCh];
-  TGraph* _signalDerFrac[AnalyzeScopeClass::_nCh];
+  TH1F** _baselineDistr;
+  TH1F** _noiseSingleEvtDistr;
+  TH1F** _noiseDistr;
+  TH1F** _ampliDistr;
+  TH1F** _ampliTimeDistr;
+  TH1F** _riseTimeDistr;
+  TH1I** _risePointsDistr;
+  TH2I** _supSignal;
+  TH2I** _supSignalScaled;
+  TProfile** _profSignalScaled;
+  TGraph** _signalDerivative;
+  TGraph** _signalDerFrac;
 
 };
 

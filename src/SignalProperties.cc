@@ -7,6 +7,19 @@
 SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
   : AnalysisPrototype(acl, dirName){
 
+  _baselineDistr = new TH1F*[_acl->_nCh];
+  _noiseSingleEvtDistr = new TH1F*[_acl->_nCh];
+  _noiseDistr = new TH1F*[_acl->_nCh];
+  _ampliDistr = new TH1F*[_acl->_nCh];
+  _ampliTimeDistr = new TH1F*[_acl->_nCh];
+  _riseTimeDistr = new TH1F*[_acl->_nCh];
+  _risePointsDistr = new TH1I*[_acl->_nCh];
+  _supSignal = new TH2I*[_acl->_nCh];
+  _supSignalScaled = new TH2I*[_acl->_nCh];
+  _profSignalScaled = new TProfile*[_acl->_nCh];
+  _signalDerivative = new TGraph*[_acl->_nCh];
+  _signalDerFrac = new TGraph*[_acl->_nCh];
+  
   char name[50];
   char title[200];
 
