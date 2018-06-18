@@ -13,7 +13,7 @@ TimingFixedFraction::TimingFixedFraction(AnalyzeScopeClass* acl, const char* dir
 
   for(int i = 0; i < _nPairs; ++i)
     _pairs[i] = GetPair(_acl->_timingPairs[i]);
-
+  
   // create histograms  
   char name[50];
   char title[200];
@@ -31,7 +31,6 @@ TimingFixedFraction::TimingFixedFraction(AnalyzeScopeClass* acl, const char* dir
 }
 
 TimingFixedFraction::~TimingFixedFraction(){
-
   for(int i = 0; i < _nPairs; ++i){
     delete[] _pairs[i];
     delete _timeDiff[i];
@@ -62,12 +61,11 @@ int* TimingFixedFraction::GetPair(std::string pairstr){
 }
 
 void TimingFixedFraction::AnalysisAction(){
-
   // get the time of threshold crossing
   for(int iCh = 0; iCh < _acl->_nCh; ++iCh)
     _t[iCh] = CalcTimeThrLinear2pt(_acl->_sigPoints[iCh], _acl->_sigTime[iCh], _acl->_constFrac[iCh] * _acl->_ampli[iCh], _acl->_baseline[iCh]);
-
-    // fill the histograms
+    
+  // fill the histograms
   for(int i = 0; i < _nPairs; ++i)
     _timeDiff[i]->Fill(_t[_pairs[i][0]] - _t[_pairs[i][1]]);
 
