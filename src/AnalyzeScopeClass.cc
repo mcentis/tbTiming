@@ -40,6 +40,8 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _sigTime = new std::vector<float>[_nCh];
   
   GetCfgValues();
+
+  RootBeautySettings();
   
   // open root file
   std::string outFileName = inFileName;
