@@ -6,14 +6,15 @@
 #include "TAxis.h"
 
 // initialize the instance counter, -1 to have counter start from 0
-int AnalysisPrototype::_instanceNumber = -1;
+int AnalysisPrototype::_totInstanceNumber = -1;
 
 AnalysisPrototype::AnalysisPrototype(AnalyzeScopeClass* acl, const char* dirName)
 {
   _acl = acl;
   _dirName = std::string(dirName);
 
-  _instanceNumber++;
+  _totInstanceNumber++;
+  _instanceNumber = _totInstanceNumber;
   
   return;
 }

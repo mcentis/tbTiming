@@ -29,7 +29,8 @@ class AnalysisPrototype
  protected:
   AnalyzeScopeClass* _acl;
   std::string _dirName;
-  static int _instanceNumber; // number of the class instance, used to avoid naming problems in root (e.g. histos with same names etc)
+  static int _totInstanceNumber; // number of the class instance, used to avoid naming problems in root (e.g. histos with same names etc)
+  int _instanceNumber; // copy of the instance number, that should not change during the life of an instance, _totInstanceNumber can as other instances are created
       
   void PutAxisLabels(TGraph* gr, const char* xtitle, const char* ytitle);
 
