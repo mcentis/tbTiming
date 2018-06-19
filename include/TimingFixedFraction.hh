@@ -26,9 +26,10 @@ private:
   int** _pairs; // array of pairs with channel numbers (starting from 0, program notation)
 
   // arrays containing the pointers to the histograms
-  std::vector<TH1F*> _timeDiff;
+  std::vector<TH1F*> _timeDiffCFD;
+  std::vector<TH1F*> _timeDiffLinReg;
 
-  float* _t; // time when the threhsold is crossed
+  float* _tCFD; // time when the threhsold is crossed
   
 };
 
