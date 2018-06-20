@@ -35,11 +35,8 @@ TimingFixedFraction::TimingFixedFraction(AnalyzeScopeClass* acl, const char* dir
 }
 
 TimingFixedFraction::~TimingFixedFraction(){
-  for(int i = 0; i < _nPairs; ++i){
+  for(int i = 0; i < _nPairs; ++i)
     delete[] _pairs[i];
-    delete _timeDiffCFD[i];
-    delete _timeDiffLinReg[i];
-  }
 
   delete[] _tCFD;
   

@@ -86,22 +86,6 @@ SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
 }
 
 SignalProperties::~SignalProperties(){
-  for(int iCh = 0; iCh < _acl->_nCh; ++iCh){
-    delete _baselineDistr[iCh];
-    delete _noiseSingleEvtDistr[iCh];
-    delete _noiseDistr[iCh];
-    delete _ampliDistr[iCh];
-    delete _ampliTimeDistr[iCh];
-    delete _riseTimeDistr[iCh];
-    delete _risePointsDistr[iCh];
-    delete _riseTimeAmpli[iCh];
-    delete _supSignal[iCh];
-    delete _supSignalScaled[iCh];
-    delete _profSignalScaled[iCh];
-    // delete _signalDerivative[iCh];
-    // delete _signalDerFrac[iCh];
-  }
-  
   return;
 }
 

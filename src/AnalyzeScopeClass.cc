@@ -67,8 +67,8 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
 }
 
 AnalyzeScopeClass::~AnalyzeScopeClass(){
-  _outFile->Close();
-
+  _outFile->Close(); // should delete all root objects associated to the file
+  
   delete[] _pol;
   delete[] _thr;
   delete[] _maxAmpliCut;
