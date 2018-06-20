@@ -29,11 +29,12 @@ private:
   TH1F** _ampliTimeDistr;
   TH1F** _riseTimeDistr;
   TH1I** _risePointsDistr;
+  TH2I** _riseTimeAmpli;
   TH2I** _supSignal;
   TH2I** _supSignalScaled;
   TProfile** _profSignalScaled;
-  TGraph** _signalDerivative;
-  TGraph** _signalDerFrac;
+  // TGraph** _signalDerivative;
+  // TGraph** _signalDerFrac;
 
 };
 
