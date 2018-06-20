@@ -12,7 +12,7 @@ TimingFixedFraction::TimingFixedFraction(AnalyzeScopeClass* acl, const char* dir
   _pairs = new int*[_nPairs];
 
   for(int i = 0; i < _nPairs; ++i)
-    _pairs[i] = GetPair(_acl->_timingPairs[i]);
+    _pairs[i] = GetPair(_acl->_timingPairs[i], _acl->_nCh);
   
   // create histograms  
   char name[50];
@@ -43,7 +43,7 @@ TimingFixedFraction::~TimingFixedFraction(){
   return;
 }
 
-int* TimingFixedFraction::GetPair(std::string pairstr){
+int* TimingFixedFraction::GetPair(std::string pairstr, int maxChNum){
   int* pair = new int[2];
 
   std::stringstream strstr(pairstr);
@@ -54,7 +54,7 @@ int* TimingFixedFraction::GetPair(std::string pairstr){
   getline(strstr, sub, '-');
   pair[1] = atoi(sub.c_str()) - 1; // subtract 1 to have ch starting from 0
 
-  if(pair[0] >= _acl->_nCh || pair[1] >= _acl->_nCh){
+  if(pair[0] >= maxChNum || pair[1] >= maxChNum){
     std::cout << "[Error] TimingFixedFraction::GetPair Channel number out of range for " << pairstr << std::endl;
     exit(1);
   }

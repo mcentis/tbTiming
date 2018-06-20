@@ -18,10 +18,9 @@ public:
   void AnalysisAction();
   //  void Process();
   void Save(TDirectory* parent);
-  
+
+  static int* GetPair(std::string pairstr, int maxChNum); // interpret the strings containing the pairs. Made function static and public for it to be used by threshold study class
 private:
-  int* GetPair(std::string pairstr); // interpret the strings containing the pairs
-  
   int _nPairs; // number of channel pairs for the timing distribution
   int** _pairs; // array of pairs with channel numbers (starting from 0, program notation)
 
