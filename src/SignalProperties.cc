@@ -40,7 +40,7 @@ SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
 
     sprintf(name, "ampliDistr_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "Amplitude Ch%d;Amplitude [V];Entries", iCh+1);
-    _ampliDistr[iCh] = new TH1F(name, title, 225, -0.1, 1); // 4 mV bins 
+    _ampliDistr[iCh] = new TH1F(name, title, 220, -0.1, 1); // 5 mV bins 
 
     sprintf(name, "ampliTimeDistr_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "Time of Max Ch%d;Time of Max [s];Entries", iCh+1);
@@ -56,7 +56,7 @@ SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
 
     sprintf(name, "riseTimeAmpli_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "Rise time 20%% to 80%% vs amplitude Ch%d;Amplitude [V];Rise time 20%% 80%% [s];Entries", iCh+1);
-    _riseTimeAmpli[iCh] = new TH2I(name, title, 550, -0.1, 1, 200, 0, 2e-9); // 8 mV * 10 ps bins
+    _riseTimeAmpli[iCh] = new TH2I(name, title, 220, -0.1, 1, 100, 0, 2e-9); // 5 mV * 20 ps bins
     
     sprintf(name, "supSignal_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "Signal Ch%d (at least 2 pt between 20%% and 80%%);Time [s];Voltage [V]", iCh+1);
