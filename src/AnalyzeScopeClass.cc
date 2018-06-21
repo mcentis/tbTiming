@@ -116,6 +116,9 @@ void AnalyzeScopeClass::GetCfgValues(){
   ReadCfgArray(_sigStop, "signalStop");
 
   ReadTimingPairs();
+
+  _minEvent = atoi(_cfg->GetValue("minEvent").c_str());
+  _maxEvent = atoi(_cfg->GetValue("maxEvent").c_str());
   
   return;
 }
@@ -155,8 +158,15 @@ template<typename T> void AnalyzeScopeClass::ReadCfgArray(T* parameter, const ch
 
 void AnalyzeScopeClass::Analyze(){
   unsigned long int nEntries = _scopeTreeInter->_wavTree->GetEntries();
+  unsigned long int evtToProcess = nEntries;
+  
+  if(_maxEvent != 0 && nEntries > _maxEvent)
+    evtToProcess = _maxEvent;
 
-  for(unsigned long int i = 0; i < nEntries; ++i){
+  std::cout << "Events from " << _minEvent << " to " << evtToProcess << " will be processed." << std::endl;
+  std::cout << "Below is shown the total number of events in the run" << std::endl;
+  
+  for(unsigned long int i = _minEvent; i < evtToProcess; ++i){
     _scopeTreeInter->_wavTree->GetEntry(i);
 
     if((i+1) % 1000 == 0 || (i+1) == nEntries)

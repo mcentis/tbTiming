@@ -51,6 +51,9 @@ public: // made these public since they are needed by the analysis objects
   float* _sigStart; // start of interval used to calculate signal properties: amplitude, risetime, etc, used to exclude multiple signals in the same event
   float* _sigStop;  // stop of interval used to calculate signal properties: amplitude, risetime, etc, used to exclude multiple signals in the same event
 
+  unsigned long int _minEvent; // minimum event number
+  unsigned long int _maxEvent; // maximum event number
+  
   std::vector<std::string> _timingPairs; // pairs of channels for the timing study
   void ReadTimingPairs(); // function to read the pairs from the cfg file
   
