@@ -42,6 +42,7 @@ public: // made these public since they are needed by the analysis objects
   int* _pol; // array with the signal polarity for each channel
   float* _thr; // array with signal thresholds in V to select events in the analysis
   float* _maxAmpliCut; // array with maximum amplitude cut in V to select events in the analysis, to avoid saturation
+  float* _minRiseTimeCut; // array with minimum risetime cut in s to select events in the analysis, to study signal properties
   float* _maxRiseTimeCut; // array with maximum risetime cut in s to select events in the analysis, to reject noise
   float* _constFrac; // array with CFD thresholds for ananlysis with fixed thresholds
 

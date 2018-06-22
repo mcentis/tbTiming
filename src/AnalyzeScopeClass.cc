@@ -19,6 +19,7 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _pol = new int[_nCh];
   _thr = new float[_nCh];
   _maxAmpliCut = new float[_nCh];
+  _minRiseTimeCut = new float[_nCh];
   _maxRiseTimeCut = new float[_nCh];
   _constFrac = new float[_nCh];
   
@@ -74,6 +75,7 @@ AnalyzeScopeClass::~AnalyzeScopeClass(){
   delete[] _pol;
   delete[] _thr;
   delete[] _maxAmpliCut;
+  delete[] _minRiseTimeCut;
   delete[] _maxRiseTimeCut;
   delete[] _constFrac;
   delete[] _ampli;
@@ -108,6 +110,7 @@ void AnalyzeScopeClass::GetCfgValues(){
   
   ReadCfgArray(_thr, "threshold");
   ReadCfgArray(_maxAmpliCut, "maxAmpli");
+  ReadCfgArray(_minRiseTimeCut, "minRiseTime");
   ReadCfgArray(_maxRiseTimeCut, "maxRiseTime");
   ReadCfgArray(_constFrac, "fractionThr");
   ReadCfgArray(_blStart, "baseStart");
@@ -227,6 +230,7 @@ bool AnalyzeScopeClass::ProcessEvent(){
   for(int iCh = 0; iCh < _nCh; ++iCh){ // amplitude cut, threshold and maximum amplitude
     ret = ret && _ampli[iCh] >= _thr[iCh];
     ret = ret && _ampli[iCh] <= _maxAmpliCut[iCh];
+    ret = ret && _riseTime[iCh] >= _minRiseTimeCut[iCh];
     ret = ret && _riseTime[iCh] <= _maxRiseTimeCut[iCh];
   }
 
