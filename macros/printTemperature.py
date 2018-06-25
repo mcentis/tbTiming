@@ -58,15 +58,18 @@ def tempPt1000(res):
 write('*IDN?')
 print read()
 
-write('*RST')
-write('FUNC \'RES\'')
-write('RES:MODE AUTO')
-write('RES:RANG 2e3')
-write(':SYSTem:RSENse OFF') # 2 wires readout, set to ON for 4 wires readout
-write(':FORM:ELEM RES')
-write(':SOUR:CLE:AUTO ON')
-write(':OUTput ON')
+# =================================== Keithley 2410 ===============================================
+# automatic voltage set
+# write('*RST')
+# write('FUNC \'RES\'')
+# write('RES:MODE AUTO')
+# write('RES:RANG 2e3')
+# write(':SYSTem:RSENse OFF') # 2 wires readout, set to ON for 4 wires readout
+# write(':FORM:ELEM RES')
+# write(':SOUR:CLE:AUTO ON')
+# write(':OUTput ON')
 
+#manual voltage set
 # write('*RST')
 # write(':SENS:FUNC \'RES\'')
 # write(':SENS:RES:NPLC 1')
@@ -79,14 +82,25 @@ write(':OUTput ON')
 # write(':TRIG:COUN 1')
 # write(':FORM:ELEM RES')
 
+# =========================== Keithley 2000 ==========================================
+
+write('*RST')
+write(':CONFigure:RESistance')
+
 try:
     while(True):
         write(':READ?')
-        res = float(read())
+        resStr = read()
+        try:
+            res = float(resStr) # try and except added since from time to time the Keithley 2000 sends 2 times the measured value
+        except:
+            continue
+
         print tempPt1000(res)
         time.sleep(2)
 except:
-    write(':SOURce:CLEar')
-    write(":OUTput?")
-    print '\nOutuput state: %s' % read()
+    # lines for Keithley 2410
+    # write(':SOURce:CLEar')
+    # write(":OUTput?")
+    # print '\nOutuput state: %s' % read()
     print 'Bye!'

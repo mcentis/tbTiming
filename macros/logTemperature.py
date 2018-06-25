@@ -23,6 +23,7 @@ ser = serial.Serial(
 if ser.isOpen() == False:
     print 'Error: Could not open ' + port
     exit(1)
+
 waitTime = 0.2 #[s] time for the instrument to receive (and process) the instruction
     
 def write(command):
@@ -58,15 +59,18 @@ def tempPt1000(res):
 write('*IDN?')
 print read()
 
-write('*RST')
-write('FUNC \'RES\'')
-write('RES:MODE AUTO')
-write('RES:RANG 2e3')
-write(':SYSTem:RSENse OFF') # 2 wires readout, set to ON for 4 wires readout
-write(':FORM:ELEM RES')
-write(':SOUR:CLE:AUTO ON')
-write(':OUTput ON')
+# =================================== Keithley 2410 ===============================================
+# automatic voltage set
+# write('*RST')
+# write('FUNC \'RES\'')
+# write('RES:MODE AUTO')
+# write('RES:RANG 2e3')
+# write(':SYSTem:RSENse OFF') # 2 wires readout, set to ON for 4 wires readout
+# write(':FORM:ELEM RES')
+# write(':SOUR:CLE:AUTO ON')
+# write(':OUTput ON')
 
+#manual voltage set
 # write('*RST')
 # write(':SENS:FUNC \'RES\'')
 # write(':SENS:RES:NPLC 1')
@@ -78,6 +82,11 @@ write(':OUTput ON')
 # write(':SENS:VOLT:PROT 2.5')
 # write(':TRIG:COUN 1')
 # write(':FORM:ELEM RES')
+
+# =========================== Keithley 2000 ==========================================
+
+write('*RST')
+write(':CONFigure:RESistance')
 
 # setup output file
 startStr = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -91,7 +100,12 @@ print 'Current reading:'
 try:
     while(True):
         write(':READ?')
-        res = float(read())
+        resStr = read()
+        try:
+            res = float(resStr) # try and except added since from time to time the Keithley 2000 sends 2 times the measured value
+        except:
+            continue
+
         temp = tempPt1000(res)
         tstamp = datetime.datetime.now().strftime("%s") # unix time stamp, GMT time
         logFile.write('%s\t%.2f\n' %(tstamp, temp))
@@ -99,8 +113,9 @@ try:
         sys.stdout.flush()
         time.sleep(2)
 except:
-    write(':SOURce:CLEar')
-    write(":OUTput?")
-    print '\nOutuput state: %s' % read()
+    # lines for Keythley 2410
+    # write(':SOURce:CLEar')
+    # write(":OUTput?")
+    # print '\nOutuput state: %s' % read()
     logFile.close()
     print 'Bye!'
