@@ -112,7 +112,7 @@ AnalyzeScopeClass::~AnalyzeScopeClass(){
 }
 
 void AnalyzeScopeClass::GetCfgValues(){
-  //_cfg->DumpConfMap();
+  // _cfg->DumpConfMap();
 
   ReadCfgArray(_pol, "polarity");
   for(int i = 0; i < _nCh; ++i) // make sure that polarity is normalized
@@ -128,8 +128,8 @@ void AnalyzeScopeClass::GetCfgValues(){
   ReadCfgArray(_sigStart, "signalStart");
   ReadCfgArray(_sigStop, "signalStop");
   ReadCfgArray(_termination, "termination");
-  ReadCfgArray(_inteStart, "inteStop");
-  ReadCfgArray(_inteStop, "inteStart");
+  ReadCfgArray(_inteStart, "inteStart");
+  ReadCfgArray(_inteStop, "inteStop");
 
   ReadTimingPairs();
 
@@ -379,7 +379,7 @@ void AnalyzeScopeClass::CalcIntegral(){
     }
 
     _integral[iCh] = AnalysisPrototype::Integrate(_sigPoints[iCh], _sigTime[iCh], _linRegT0[iCh] + _inteStart[iCh], _linRegT0[iCh] + _inteStop[iCh], _baseline[iCh]);
-    _integral[iCh] /= _termination[iCh];
+    _integral[iCh] /= _termination[iCh]; // from [Vs] to [C]
   }
   
   return;
