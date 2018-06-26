@@ -12,6 +12,8 @@ SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
   _noiseDistr = new TH1F*[_acl->_nCh];
   _ampliDistr = new TH1F*[_acl->_nCh];
   _ampliTimeDistr = new TH1F*[_acl->_nCh];
+  _integralDistr = new TH1F*[_acl->_nCh];
+  _inteAmpli = new TH2I*[_acl->_nCh];
   _riseTimeDistr = new TH1F*[_acl->_nCh];
   _risePointsDistr = new TH1I*[_acl->_nCh];
   _riseTimeAmpli = new TH2I*[_acl->_nCh];
@@ -45,6 +47,14 @@ SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
     sprintf(name, "ampliTimeDistr_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "Time of Max Ch%d;Time of Max [s];Entries", iCh+1);
     _ampliTimeDistr[iCh] = new TH1F(name, title, 3001, -0.1e-9, 300.1e-9); // 100 ps bins
+
+    sprintf(name, "integralDistr_inst%d_Ch%d",_instanceNumber, iCh+1);
+    sprintf(title, "Integral Ch%d (at least 2 pt between 20%% and 80%%);Integral [C];Entries", iCh+1);
+    _integralDistr[iCh] = new TH1F(name, title, 220, -0.1e-10, 1e-10); // 5e-13 C bins 
+
+    sprintf(name, "inteAmpli_inst%d_Ch%d",_instanceNumber, iCh+1);
+    sprintf(title, "Integral vs amplitude Ch%d;Amplitude [V];Integral [C];Entries", iCh+1);
+    _inteAmpli[iCh] = new TH2I(name, title, 220, -0.1, 1, 220, -0.1e-10, 1e-10); // 5 mV * 5e-13 C bins
 
     sprintf(name, "riseTime2080Distr_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "20%% to 80%% rise time Ch%d;Rise time [s];Entries", iCh+1);
@@ -112,6 +122,11 @@ void SignalProperties::AnalysisAction(){
 	_supSignalScaled[iCh]->Fill(*itTime - _acl->_linRegT0[iCh], (*itVolt - _acl->_baseline[iCh]) / _acl->_ampli[iCh]);
       }
     }
+
+    if(_acl->_integral[iCh] < 10){
+      _integralDistr[iCh]->Fill(_acl->_integral[iCh]);
+      _inteAmpli[iCh]->Fill(_acl->_ampli[iCh], _acl->_integral[iCh]);
+    }
   }
   
   return;
@@ -163,6 +178,8 @@ void SignalProperties::Save(TDirectory* parent){
     _noiseDistr[iCh]->Write();
     _ampliDistr[iCh]->Write();
     _ampliTimeDistr[iCh]->Write();
+    _integralDistr[iCh]->Write();
+    _inteAmpli[iCh]->Write();
     _riseTimeDistr[iCh]->Write();
     _risePointsDistr[iCh]->Write();
     _riseTimeAmpli[iCh]->Write();

@@ -177,11 +177,6 @@ float AnalysisPrototype::Integrate(const std::vector<float>& tra, const std::vec
 {
   float integral = 0;
   float dt;
-  // for(int i = 1; i < n; i++)
-  //   if(tim[i] >= start && tim[i] <= stop){
-  //     dt = tim[i] - tim[i - 1];
-  //     integral += 0.5 * dt * (tra[i - 1] + tra[i] - 2 * offset);
-  //   }
 
   std::vector<float>::const_iterator itVolt = tra.begin();
   std::vector<float>::const_iterator itTime = tim.begin();
@@ -190,7 +185,7 @@ float AnalysisPrototype::Integrate(const std::vector<float>& tra, const std::vec
       dt = *itTime - *(itTime - 1);
       integral += 0.5 * dt * (*(itVolt - 1) + *itVolt - 2 * offset);
     }
-  
+
   return integral;
 }
 

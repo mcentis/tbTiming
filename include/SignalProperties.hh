@@ -27,6 +27,8 @@ private:
   TH1F** _noiseDistr;
   TH1F** _ampliDistr;
   TH1F** _ampliTimeDistr;
+  TH1F** _integralDistr;
+  TH2I** _inteAmpli;
   TH1F** _riseTimeDistr;
   TH1I** _risePointsDistr;
   TH2I** _riseTimeAmpli;
