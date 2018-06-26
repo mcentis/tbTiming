@@ -22,8 +22,11 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _minRiseTimeCut = new float[_nCh];
   _maxRiseTimeCut = new float[_nCh];
   _constFrac = new float[_nCh];
+
+  _termination = new float[_nCh];
   
   _ampli = new float[_nCh];
+  _integral = new float[_nCh];
   _ampliTime = new float[_nCh];
   _baseline = new float[_nCh];
   _noise = new float[_nCh];
@@ -36,6 +39,9 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   
   _sigStart = new float[_nCh];
   _sigStop = new float[_nCh];
+
+  _inteStart = new float[_nCh];
+  _inteStop = new float[_nCh];
 
   _blPoints = new std::vector<float>[_nCh];
   _sigPoints = new std::vector<float>[_nCh];
@@ -77,8 +83,10 @@ AnalyzeScopeClass::~AnalyzeScopeClass(){
   delete[] _maxAmpliCut;
   delete[] _minRiseTimeCut;
   delete[] _maxRiseTimeCut;
+  delete[] _termination;
   delete[] _constFrac;
   delete[] _ampli;
+  delete[] _integral;
   delete[] _ampliTime;
   delete[] _baseline;
   delete[] _noise;
@@ -89,6 +97,8 @@ AnalyzeScopeClass::~AnalyzeScopeClass(){
   delete[] _blStop;
   delete[] _sigStart;
   delete[] _sigStop;
+  delete[] _inteStart;
+  delete[] _inteStop;
 
   // delete analysis without cuts objects
   for(std::vector<AnalysisPrototype*>::iterator it = _analysisWithoutCuts.begin(); it != _analysisWithoutCuts.end(); it++)
@@ -117,6 +127,9 @@ void AnalyzeScopeClass::GetCfgValues(){
   ReadCfgArray(_blStop, "baseStop");
   ReadCfgArray(_sigStart, "signalStart");
   ReadCfgArray(_sigStop, "signalStop");
+  ReadCfgArray(_termination, "termination");
+  ReadCfgArray(_inteStart, "inteStop");
+  ReadCfgArray(_inteStop, "inteStart");
 
   ReadTimingPairs();
 
@@ -182,6 +195,7 @@ void AnalyzeScopeClass::Analyze(){
     CalcBaselineNoise();
     CalcAmpliTime();
     CalcRiseTimeT0();
+    CalcIntegral();
     
     // analysis without selection
     for(std::vector<AnalysisPrototype*>::iterator it = _analysisWithoutCuts.begin(); it != _analysisWithoutCuts.end(); it++)
@@ -352,6 +366,20 @@ void AnalyzeScopeClass::CalcRiseTimeT0(){ // CalcBaselineNoise() and CalcAmpliTi
     else
       _linRegT0[iCh] = 10; // if not enough points for linear regression
     
+  }
+  
+  return;
+}
+
+void AnalyzeScopeClass::CalcIntegral(){
+  for(int iCh = 0; iCh < _nCh; ++iCh){
+    if(_linRegT0[iCh] == 10){ // the 0 crossing time is not determined
+      _integral[iCh] = 10;
+      continue;
+    }
+
+    _integral[iCh] = AnalysisPrototype::Integrate(_sigPoints[iCh], _sigTime[iCh], _linRegT0[iCh] + _inteStart[iCh], _linRegT0[iCh] + _inteStop[iCh], _baseline[iCh]);
+    _integral[iCh] /= _termination[iCh];
   }
   
   return;

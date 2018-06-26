@@ -23,9 +23,9 @@ class AnalysisPrototype
 
   // utilities
   static void CalcMeanStdDev(const std::vector<float>& vec, float& mean, float& stdDev, float& Emean, float& EstdDev);
-  static float CalcTimeThrLinear2pt(const std::vector<float>& tra, const std::vector<float>& tim, float thr, float offset); // all agruments (except time) need to be already corrected for polarity
+  static float CalcTimeThrLinear2pt(const std::vector<float>& tra, const std::vector<float>& tim, float thr, float offset); // all arguments (except time) need to be already corrected for polarity
   static void LinearReg(const std::vector<float>& x, const std::vector<float>& y, float& a, float& b); // linear regression y = ax + b
-
+  static float Integrate(const std::vector<float>& tra, const std::vector<float>& tim, float start, float stop, float offset); // integrate between start and stop, all arguments needs to be already corrected for polarity
  protected:
   AnalyzeScopeClass* _acl;
   std::string _dirName;

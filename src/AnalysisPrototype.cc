@@ -173,6 +173,27 @@ void AnalysisPrototype::CalcMeanStdDev(const std::vector<float>& vec, float& mea
   return;
 }
 
+float AnalysisPrototype::Integrate(const std::vector<float>& tra, const std::vector<float>& tim, float start, float stop, float offset)
+{
+  float integral = 0;
+  float dt;
+  // for(int i = 1; i < n; i++)
+  //   if(tim[i] >= start && tim[i] <= stop){
+  //     dt = tim[i] - tim[i - 1];
+  //     integral += 0.5 * dt * (tra[i - 1] + tra[i] - 2 * offset);
+  //   }
+
+  std::vector<float>::const_iterator itVolt = tra.begin();
+  std::vector<float>::const_iterator itTime = tim.begin();
+  for(; itVolt != tra.end() && itTime != tim.end(); ++itVolt, ++itTime)
+    if(*itTime >= start && *itTime <= stop){
+      dt = *itTime - *(itTime - 1);
+      integral += 0.5 * dt * (*(itVolt - 1) + *itVolt - 2 * offset);
+    }
+  
+  return integral;
+}
+
 void AnalysisPrototype::PutAxisLabels(TGraph* gr, const char* xtitle, const char* ytitle)
 {
   TCanvas* can = new TCanvas();
