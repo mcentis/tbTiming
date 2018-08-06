@@ -1,9 +1,12 @@
 #include <iostream>
+#include <vector>
 
 #include "ConfigFileReader.hh"
 #include "ScopeTreeInterface.hh"
 
 #include "TTree.h"
+#include "TFile.h"
+#include "TH2I.h"
 
 const int nBits = 16; // number of bits in the beam telescope trigger counter
 
@@ -95,21 +98,18 @@ int main(int argc, char* argv[])
   float sigStop = atof(cfg->GetValue("sigStop").c_str()); // end of signal region for signal channel
   
   long int nTrigScope; // from the oscilloscope waveform
-  long int nTrigScopePrev;
-  // long int nTrigTrack; // from the tracking tree
-  // long int nTrigTrackPrev;
+  long int nTrigScopePrev; // trig number of previous entry
   int cycleScope = 0; // cycle of the oscilloscope trigger
-  // int cycleTrack = 0; // cycle of the tracking tree
   
   std::vector<long int> trigList; // list of trig number of events above threshold for the selected channel
 
   float bl; // baseline of the channel used for signal
   int blpt; // number of point used in the baseline
   
-  unsigned long int nEntries = scopeTree->_wavTree->GetEntries();
+  unsigned long int nEntriesScope = scopeTree->_wavTree->GetEntries();
   unsigned long int maxEvt = 10000; // number of events used to find the right cycle between the oscilloscope and the tracking
-  if(maxEvt > nEntries)
-    maxEvt = nEntries;
+  if(maxEvt > nEntriesScope)
+    maxEvt = nEntriesScope;
 
   std::cout << " Finding events for trees synchronization" << std::endl;
   
@@ -152,12 +152,117 @@ int main(int argc, char* argv[])
 	  break;
 	}
     }
-  } // loop on events
+
+    nTrigScopePrev = nTrigScope;
+  } // loop on events in oscilloscope tree, first cycle
 
   std::cout << "\n Found " << trigList.size() << " events above threshold" << std::endl;
+
+  // output file
+  std::string scopeFileName(argv[1]);
+  std::string outFileName = scopeFileName.substr(0, scopeFileName.size() - 5); // assume that the root file ends in .root
+  outFileName.append("_trackInfo.root");
+  TFile* outFile = new TFile(outFileName.c_str(), "RECREATE");
+  
+  // prepare to read the track tree
+  TFile* trackFile = TFile::Open(argv[2]);
+  TTree* trackTree = (TTree*) trackFile->Get("tracks");
+  Int_t           srstriggerctr;
+  Int_t           srstimestamp;
+  Int_t           ntracks;
+  Int_t           tracknumber;
+  Double_t        trackchi2;
+  std::vector<std::vector<double> >* hits = 0;
+  std::vector<double>*  distnextcluster = 0;
+  std::vector<double>*  totchanextcluster = 0;
+  
+  // Set branch addresses
+  trackTree->SetBranchAddress("srstriggerctr",&srstriggerctr);
+  trackTree->SetBranchAddress("srstimestamp",&srstimestamp);
+  trackTree->SetBranchAddress("ntracks",&ntracks);
+  trackTree->SetBranchAddress("tracknumber",&tracknumber);
+  trackTree->SetBranchAddress("trackchi2",&trackchi2);
+  trackTree->SetBranchAddress("hits",&hits);
+  trackTree->SetBranchAddress("distnextcluster",&distnextcluster);
+  trackTree->SetBranchAddress("totchanextcluster",&totchanextcluster);
+
+  long int nTrigTrack; // from the tracking tree
+  long int nTrigTrackPrev; // trig number of previous event
+  int cycleTrack = -1; // cycle of the tracking tree
+  long int nTrigTrackCorr; // trigger number going from 0 to 2^nBits, to synchronize with the oscilloscope
+  
+  unsigned long int nEntriesTracks = trackTree->GetEntries();
+
+  char name[50];
+  char title[200];
+  
+  TH2I* hitmap;
+  std::vector<TH2I*> hitVec;
+  float x,y;
+  bool match = false; // set to true if the trigger numbers match
+  
+  for(unsigned long int i = 0; i < nEntriesTracks; ++i){ // loop on the 
+    trackTree->GetEntry(i);
+
+    nTrigTrack = srstriggerctr;
     
+    if(i == 0)
+      nTrigTrackPrev = nTrigTrack + 1; // use this initialization to have a new cycle in the if below and initialize the hitmap
+
+    if(cycleNumber(nTrigTrackPrev, nTrigTrack, cycleTrack)){ // if there is a new cycle, make a new hitmap
+      sprintf(name, "hitmap_trackCycle%d", cycleTrack);
+      sprintf(title, "Hitmap track cycle %d;X [mm];Y[mm];Entries", cycleTrack);
+      hitmap = new TH2I(name, title, 1000, 0, 100, 1000, -50, 50);
+      hitVec.push_back(hitmap);
+      match = false;
+    }
+    
+    nTrigTrackCorr = nTrigTrack % (int) pow(2, nBits);
+
+    if(match && nTrigTrackPrev != nTrigTrack){ // if in the previous entry there was a match and the trigger number changed, the track was the only one of the event
+      hitmap->Fill(x, y);
+      match = false;
+    }
+    
+    if(ntracks == 1 && distnextcluster->at(0) != 2000) // use only the first track of one event, it is checked in the next iteration that the track is the only one of the event, the distnextcluster is 2000 when the track is not reconstructed on the plane of interest
+      for(unsigned int iTrigScope = 0; iTrigScope < trigList.size(); iTrigScope++) // check if the event is in the oscilloscope trigger list
+	if(nTrigTrackCorr == trigList[iTrigScope]){ // find event with same number
+	  x = hits->at(0)[0];
+	  y = hits->at(0)[1];
+	  match = true;
+	  break;
+	}
+    
+    nTrigTrackPrev = nTrigTrack;
+  } // loop on events of track tree
+
+
+  // find the matching cycle between the   
+  float minFig = 1e6;
+  int nCycle;
+  float fig; // variable to be minimized to associate the cycle 0 of the oscilloscope data to the cycle of the tracking
+  for(unsigned int iCycle = 0; iCycle < hitVec.size(); ++iCycle){ // per construction the cycle number of the tracking corresponds to the position in the vector
+    if(hitVec[iCycle]->GetStdDev(1) == 0 || hitVec[iCycle]->GetStdDev(2) == 0)
+      continue;
+
+    fig = hitVec[iCycle]->GetStdDev(1) + hitVec[iCycle]->GetStdDev(2);
+    if(fig < minFig){
+      minFig = fig;
+      nCycle = iCycle;
+    }
+  }
+
+  std::cout << "The tracking cycle corresponding to the 0 cycle of the oscilloscope data is " << nCycle << std::endl;
+  
+  outFile->cd();
+  for(unsigned int i = 0; i < hitVec.size(); ++i)
+    hitVec[i]->Write();
+  
   delete scopeTree;
   delete cfg;
-    
+
+  trackFile->Close();
+  outFile->Close();
+  
   return 0;
 }
