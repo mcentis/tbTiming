@@ -54,18 +54,18 @@ long int trigNum(Float_t* volt, int npt, float dt) // vector with the voltages, 
   return nTrig;
 }
 
-// function to calculate the cycle number, cycle start from 0
-// returns tue if the cycle number changes
+// function to calculate the cycle number, cycle should start from 0
+// returns true if the cycle number changes
 // a cycle is a block of 65536 events, after which the bit pattern of the beam telescope starts again from 0
-// put prevTrigNum = trigNum to not augment the cycle if nothing should happen (maybe in first entry of a tree)
 bool cycleNumber(long int prevTrigNum, long int trigNum, int& cycle)
 {  
   if(prevTrigNum > trigNum){ // restarted counting, or new tracking file in a chain
     cycle++;
     return true;
   }
-
-  if(trigNum % (int) pow(2, nBits) == 0){ // trigger number from the beam telescope tree can be bigger than the 65536 expected from a 16 bit pattern, all numbers should be there for a run
+  
+  // trigger number from the beam telescope tree can be bigger than the 65536 expected from a 16 bit pattern, all numbers should be there for a run
+  if(trigNum !=0 && trigNum % (int) pow(2, nBits) == 0){ // added trigNum != 0 to avoid problems on the first iteration, in case of a chain of tracking data, the previous if should take care of it
     cycle++;
     return true;
   }
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
       nTrigScopePrev = nTrigScope;
 
     if(cycleNumber(nTrigScopePrev, nTrigScope, cycleScope))// if there is a new cycle break, all the trigger numbers for alignment between trees must be in the same cycle
-      break;
+	break;
 
     bl = 0;
     blpt = 0;
@@ -167,14 +167,14 @@ int main(int argc, char* argv[])
   // prepare to read the track tree
   TFile* trackFile = TFile::Open(argv[2]);
   TTree* trackTree = (TTree*) trackFile->Get("tracks");
-  Int_t           srstriggerctr;
-  Int_t           srstimestamp;
-  Int_t           ntracks;
-  Int_t           tracknumber;
-  Double_t        trackchi2;
+  Int_t srstriggerctr;
+  Int_t srstimestamp;
+  Int_t ntracks;
+  Int_t tracknumber;
+  Double_t trackchi2;
   std::vector<std::vector<double> >* hits = 0;
-  std::vector<double>*  distnextcluster = 0;
-  std::vector<double>*  totchanextcluster = 0;
+  std::vector<double>* distnextcluster = 0;
+  std::vector<double>* totchanextcluster = 0;
   
   // Set branch addresses
   trackTree->SetBranchAddress("srstriggerctr",&srstriggerctr);
@@ -201,7 +201,7 @@ int main(int argc, char* argv[])
   float x,y;
   bool match = false; // set to true if the trigger numbers match
   
-  for(unsigned long int i = 0; i < nEntriesTracks; ++i){ // loop on the 
+  for(unsigned long int i = 0; i < nEntriesTracks; ++i){ // loop on the track tree
     trackTree->GetEntry(i);
 
     nTrigTrack = srstriggerctr;
@@ -252,12 +252,122 @@ int main(int argc, char* argv[])
     }
   }
 
-  std::cout << "The tracking cycle corresponding to the 0 cycle of the oscilloscope data is " << nCycle << std::endl;
+  std::cout << " The tracking cycle corresponding to the 0 cycle of the oscilloscope data is " << nCycle << std::endl;
   
   outFile->cd();
   for(unsigned int i = 0; i < hitVec.size(); ++i)
     hitVec[i]->Write();
+
+  // produce 2 trees, one with the track number of the oscilloscope, the other with the all the tracking info ordered with the trig number and cycle, so that they can be synched as friends
+  // first tree
+  TTree* trackHitTree = new TTree("trackHitTree_tmp", "");
+  Int_t nTracks = 500; // number of tracks in the event, it is 0 if no hit is reconstructed
+  Float_t DUThits[nTracks][2]; // hit position on the telescope plane closest to the DUT (plane 0) ...to be improved...
+  trackHitTree->Branch("cycle", &cycleTrack, "cycle/I");
+  trackHitTree->Branch("nTrig", &nTrigTrackCorr, "nTrig/l");
+  trackHitTree->Branch("nTracks", &nTracks, "nTracks/I");
+  trackHitTree->Branch("hits", DUThits, "hits[nTracks][2]/F");
+
+  cycleTrack = -nCycle; // so that cycleTrack 0 in the tree corresponds to cycleScope 0 in the next tree
+
+  std::cout << " Creating temp tree with hits" << std::endl;
   
+  for(unsigned long int i = 0; i < nEntriesTracks; ++i){ // loop on the track tree
+    trackTree->GetEntry(i);
+
+    nTrigTrack = srstriggerctr;
+    
+    if(i == 0)
+      nTrigTrackPrev = nTrigTrack;
+
+    cycleNumber(nTrigTrackPrev, nTrigTrack, cycleTrack);
+
+    nTrigTrackCorr = nTrigTrack % (int) pow(2, nBits);
+
+    nTracks = 0;
+    
+    do{ // group together all tracks in one event
+      DUThits[nTracks][0] = hits->at(0)[0];
+      DUThits[nTracks][1] = hits->at(0)[1];
+      nTracks++;
+      i++;
+      if(i == nEntriesTracks)
+	break;
+      trackTree->GetEntry(i);
+    }while(nTrigTrack == srstriggerctr);
+
+    i--; // go back one event as the counter went one too far in the while loop
+    trackTree->GetEntry(i);
+
+    trackHitTree->Fill();
+    
+    nTrigTrackPrev = nTrigTrack;
+  } // loop on events of track tree
+
+  trackHitTree->BuildIndex("cycle", "nTrig");
+  trackHitTree->Write();
+
+  // second tree
+  TTree* scopeTrigNumTree = new TTree("scopeTrigNumTree_tmp", "");
+  ULong64_t event; // event number (same as in oscilloscope tree, used for synchronization)    
+  scopeTrigNumTree->Branch("cycle", &cycleScope, "cycle/I");
+  scopeTrigNumTree->Branch("nTrig", &nTrigScope, "nTrig/l");
+  scopeTrigNumTree->Branch("event", &event, "event/l");
+
+  std::cout << " Creating temp tree with trig numbers from oscilloscope" << std::endl;
+  
+  for(unsigned long int i = 0; i < nEntriesScope; ++i){
+    scopeTree->_wavTree->GetEntry(i);
+
+    if((i+1) % 1000 == 0 || (i+1) == nEntriesScope)
+      std::cout << " Processing event " << i+1 << " / " << nEntriesScope << "                             \r" << std::flush;
+    
+    nTrigScope = trigNum(scopeTree->_channels[trigCh], scopeTree->_npt, scopeTree->_time[1] - scopeTree->_time[0]);
+
+    if(i == 0)
+      nTrigScopePrev = nTrigScope;
+
+    cycleNumber(nTrigScopePrev, nTrigScope, cycleScope);
+    
+    event = scopeTree->_event;
+
+    scopeTrigNumTree->Fill();
+    
+    nTrigScopePrev = nTrigScope;
+  }
+
+  scopeTrigNumTree->Write();
+
+  std::cout << std::endl;
+
+  scopeTrigNumTree->AddFriend(trackHitTree);
+  
+  // produce the tree with the hits for each event of the oscilloscope
+  TTree* hitTree = new TTree("hitTree", "hits on the detector planes");
+  hitTree->Branch("event", &event, "event/l");
+  hitTree->Branch("nTracks", &nTracks, "nTracks/I");
+  hitTree->Branch("hits", DUThits, "hits[nTracks][2]/F");
+
+  scopeTrigNumTree->SetBranchAddress("event", &event);
+  trackHitTree->SetBranchAddress("nTracks", &nTracks);
+  trackHitTree->SetBranchAddress("hits", DUThits);
+
+  std::cout << " Creating tree with tracking data ordered per oscilloscope event" << std::endl;
+  
+  for(unsigned long int i = 0; i < nEntriesScope; ++i){
+   scopeTrigNumTree->GetEntry(i);
+
+    if((i+1) % 1000 == 0 || (i+1) == nEntriesScope)
+      std::cout << " Processing event " << i+1 << " / " << nEntriesScope << "                             \r" << std::flush;
+
+    hitTree->Fill();
+  }
+ 
+  std::cout << std::endl;
+  
+  hitTree->BuildIndex("event"); // to sync it with the oscilloscope wawe tree
+  hitTree->Write();
+
   delete scopeTree;
   delete cfg;
 
