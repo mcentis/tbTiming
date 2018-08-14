@@ -42,7 +42,7 @@ SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
 
     sprintf(name, "ampliDistr_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "Amplitude Ch%d;Amplitude [V];Entries", iCh+1);
-    _ampliDistr[iCh] = new TH1F(name, title, 220, -0.1, 1); // 5 mV bins 
+    _ampliDistr[iCh] = new TH1F(name, title, 2200, -0.1, 1); // 0.5 mV bins 
 
     sprintf(name, "ampliTimeDistr_inst%d_Ch%d",_instanceNumber, iCh+1);
     sprintf(title, "Time of Max Ch%d;Time of Max [s];Entries", iCh+1);
