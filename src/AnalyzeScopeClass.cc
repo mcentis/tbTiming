@@ -210,6 +210,7 @@ void AnalyzeScopeClass::Analyze(){
     CalcRiseTimeT0();
     CalcIntegral();
 
+    _event = _scopeTreeInter->_event;
     _evtPropTree->Fill(); // fill event properties
     
     // analysis without selection
