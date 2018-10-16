@@ -63,7 +63,20 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
     outFileName.insert(0, add);
   
   _outFile = TFile::Open(outFileName.c_str(), "RECREATE");
-  
+
+  // tree with properties of the event
+  _evtPropTree = new TTree("evtPropTree", "signal properties of the event");
+  _evtPropTree->Branch("event", &_event, "event/l");
+  _evtPropTree->Branch("nCh", &_nChTree, "nCh/i");
+  _nChTree = _nCh;
+  _evtPropTree->Branch("ampli", _ampli, "ampli[nCh]/F");
+  _evtPropTree->Branch("ampliTime", _ampliTime, "ampliTime[nCh]/F");
+  _evtPropTree->Branch("baseline", _baseline, "baseline[nCh]/F");
+  _evtPropTree->Branch("noise", _noise, "noise[nCh]/F");
+  _evtPropTree->Branch("riseTime", _riseTime, "riseTime[nCh]/F");
+  _evtPropTree->Branch("integral", _integral, "integral[nCh]/F");
+  _evtPropTree->Branch("linRegT0", _linRegT0, "linRegT0[nCh]/F");
+    
   // create analysis objects without cuts
   _analysisWithoutCuts.push_back(new SignalProperties(this, "SignalPropertiesNoCuts"));
 
@@ -196,6 +209,8 @@ void AnalyzeScopeClass::Analyze(){
     CalcAmpliTime();
     CalcRiseTimeT0();
     CalcIntegral();
+
+    _evtPropTree->Fill(); // fill event properties
     
     // analysis without selection
     for(std::vector<AnalysisPrototype*>::iterator it = _analysisWithoutCuts.begin(); it != _analysisWithoutCuts.end(); it++)
@@ -235,6 +250,8 @@ void AnalyzeScopeClass::Save(){
   for(std::vector<AnalysisPrototype*>::iterator it = _analysisWCuts.begin(); it != _analysisWCuts.end(); it++)
     (*it)->Save(_outFile);
 
+  _evtPropTree->Write();
+  
   return;
 }
 

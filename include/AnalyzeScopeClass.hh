@@ -5,6 +5,7 @@
 #include "ConfigFileReader.hh"
 
 #include "TFile.h"
+#include "TTree.h"
 
 class AnalysisPrototype;
 
@@ -31,7 +32,10 @@ private:
   ConfigFileReader* _cfg;
 
   TFile* _outFile;
-
+  TTree* _evtPropTree; // tree with the event properties: amplitude, integral, time of arrival etc...
+  ULong64_t _event; // event number, needed by the tree
+  UInt_t _nChTree; // number of channels as needed by the tree (cannot use _nCh directly)
+  
   std::vector<AnalysisPrototype*> _analysisWithoutCuts; // analysis objects without cuts
   std::vector<AnalysisPrototype*> _analysisWCuts; // analysis objects with cuts
   
