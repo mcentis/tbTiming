@@ -250,6 +250,7 @@ void AnalyzeScopeClass::Save(){
   for(std::vector<AnalysisPrototype*>::iterator it = _analysisWCuts.begin(); it != _analysisWCuts.end(); it++)
     (*it)->Save(_outFile);
 
+  _outFile->cd();
   _evtPropTree->Write();
   
   return;
