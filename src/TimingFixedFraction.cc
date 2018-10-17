@@ -27,9 +27,7 @@ TimingFixedFraction::TimingFixedFraction(AnalyzeScopeClass* acl, const char* dir
     sprintf(name, "deltaTDistrLinReg_inst%d_Ch%d_Ch%d",_instanceNumber , _pairs[i][0]+1, _pairs[i][1]+1);
     sprintf(title, "#Delta t Linear Regression Ch%d-Ch%d;#Delta t [s];Entries" , _pairs[i][0]+1, _pairs[i][1]+1);
     _timeDiffLinReg.push_back(new TH1F(name, title, 2500, -10e-9, 10e-9)); // 8 ps bins 
-}
-
-  _tCFD = new float[_acl->_nCh];
+  }
   
   return;
 }
@@ -38,8 +36,6 @@ TimingFixedFraction::~TimingFixedFraction(){
   for(int i = 0; i < _nPairs; ++i)
     delete[] _pairs[i];
 
-  delete[] _tCFD;
-  
   return;
 }
 
@@ -63,13 +59,9 @@ int* TimingFixedFraction::GetPair(std::string pairstr, int maxChNum){
 }
 
 void TimingFixedFraction::AnalysisAction(){
-  // get the time of threshold crossing
-  for(int iCh = 0; iCh < _acl->_nCh; ++iCh)
-    _tCFD[iCh] = CalcTimeThrLinear2pt(_acl->_sigPoints[iCh], _acl->_sigTime[iCh], _acl->_constFrac[iCh] * _acl->_ampli[iCh], _acl->_baseline[iCh]);
-    
   // fill the histograms
   for(int i = 0; i < _nPairs; ++i){
-    _timeDiffCFD[i]->Fill(_tCFD[_pairs[i][0]] - _tCFD[_pairs[i][1]]);
+    _timeDiffCFD[i]->Fill(_acl->_tCFD[_pairs[i][0]] - _acl->_tCFD[_pairs[i][1]]);
     _timeDiffLinReg[i]->Fill(_acl->_linRegT0[_pairs[i][0]] - _acl->_linRegT0[_pairs[i][1]]);
   }
   

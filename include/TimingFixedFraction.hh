@@ -27,8 +27,6 @@ private:
   // arrays containing the pointers to the histograms
   std::vector<TH1F*> _timeDiffCFD;
   std::vector<TH1F*> _timeDiffLinReg;
-
-  float* _tCFD; // time when the threhsold is crossed
   
 };
 

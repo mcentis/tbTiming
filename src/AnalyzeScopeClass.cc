@@ -33,6 +33,7 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _riseTime = new float[_nCh];
   _risePoints = new int[_nCh];
   _linRegT0 = new float[_nCh];
+  _tCFD = new float[_nCh];
   
   _blStart = new float[_nCh];
   _blStop = new float[_nCh];
@@ -76,6 +77,7 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _evtPropTree->Branch("riseTime", _riseTime, "riseTime[nCh]/F");
   _evtPropTree->Branch("integral", _integral, "integral[nCh]/F");
   _evtPropTree->Branch("linRegT0", _linRegT0, "linRegT0[nCh]/F");
+  _evtPropTree->Branch("tCFD", _tCFD, "tCFD[nCh]/F");
     
   // create analysis objects without cuts
   _analysisWithoutCuts.push_back(new SignalProperties(this, "SignalPropertiesNoCuts"));
@@ -106,6 +108,7 @@ AnalyzeScopeClass::~AnalyzeScopeClass(){
   delete[] _riseTime;
   delete[] _risePoints;
   delete[] _linRegT0;
+  delete[] _tCFD;
   delete[] _blStart;
   delete[] _blStop;
   delete[] _sigStart;
@@ -209,7 +212,8 @@ void AnalyzeScopeClass::Analyze(){
     CalcAmpliTime();
     CalcRiseTimeT0();
     CalcIntegral();
-
+    CalcTcfd();
+    
     _event = _scopeTreeInter->_event;
     _evtPropTree->Fill(); // fill event properties
     
@@ -386,6 +390,13 @@ void AnalyzeScopeClass::CalcRiseTimeT0(){ // CalcBaselineNoise() and CalcAmpliTi
       _linRegT0[iCh] = 10; // if not enough points for linear regression
     
   }
+  
+  return;
+}
+
+void AnalyzeScopeClass::CalcTcfd(){
+  for(int iCh = 0; iCh < _nCh; ++iCh)
+    _tCFD[iCh] = AnalysisPrototype::CalcTimeThrLinear2pt(_sigPoints[iCh], _sigTime[iCh], _constFrac[iCh] * _ampli[iCh], _baseline[iCh]);
   
   return;
 }
