@@ -3,6 +3,7 @@
 #include "SignalProperties.hh"
 #include "TimingFixedFraction.hh"
 #include "ThresholdStudy.hh"
+#include "FourierAnalysis.hh"
 
 #include <string>
 #include <sstream>
@@ -87,6 +88,7 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _analysisWCuts.push_back(new SignalProperties(this, "SignalProperties"));
   _analysisWCuts.push_back(new TimingFixedFraction(this, "TimingFixedFraction"));
   _analysisWCuts.push_back(new ThresholdStudy(this, "ThresholdStudy"));
+  _analysisWCuts.push_back(new FourierAnalysis(this, "FourierAnalysis"));
 
   return;
 }
