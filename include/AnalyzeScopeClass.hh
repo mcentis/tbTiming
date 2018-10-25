@@ -51,6 +51,7 @@ public: // made these public since they are needed by the analysis objects
   float* _minRiseTimeCut; // array with minimum risetime cut in s to select events in the analysis, to study signal properties
   float* _maxRiseTimeCut; // array with maximum risetime cut in s to select events in the analysis, to reject noise
   float* _constFrac; // array with CFD thresholds for ananlysis with fixed thresholds
+  float* _ToT; // array with time over threshold to be used in the CFD, riseTime, and rising edge interpolation
 
   float* _blStart; // start of interval used to calculate baseline and noise
   float* _blStop; // stop of interval used to calculate baseline and noise

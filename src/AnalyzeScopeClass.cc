@@ -22,6 +22,7 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _minRiseTimeCut = new float[_nCh];
   _maxRiseTimeCut = new float[_nCh];
   _constFrac = new float[_nCh];
+  _ToT = new float[_nCh];
 
   _termination = new float[_nCh];
   
@@ -49,7 +50,7 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _sigTime = new std::vector<float>[_nCh];
   
   GetCfgValues();
-
+  
   RootBeautySettings();
   
   // open root file
@@ -100,6 +101,7 @@ AnalyzeScopeClass::~AnalyzeScopeClass(){
   delete[] _maxRiseTimeCut;
   delete[] _termination;
   delete[] _constFrac;
+  delete[] _ToT;
   delete[] _ampli;
   delete[] _integral;
   delete[] _ampliTime;
@@ -139,6 +141,7 @@ void AnalyzeScopeClass::GetCfgValues(){
   ReadCfgArray(_minRiseTimeCut, "minRiseTime");
   ReadCfgArray(_maxRiseTimeCut, "maxRiseTime");
   ReadCfgArray(_constFrac, "fractionThr");
+  ReadCfgArray(_ToT, "timeOverThreshold");
   ReadCfgArray(_blStart, "baseStart");
   ReadCfgArray(_blStop, "baseStop");
   ReadCfgArray(_sigStart, "signalStart");
@@ -361,10 +364,15 @@ void AnalyzeScopeClass::CalcRiseTimeT0(){ // CalcBaselineNoise() and CalcAmpliTi
   std::vector<float> x, y; // used for t0 with linear regression
 
   for(int iCh = 0; iCh < _nCh; ++iCh){
-    t1 = AnalysisPrototype::CalcTimeThrLinear2pt(_sigPoints[iCh], _sigTime[iCh], 0.2 * _ampli[iCh], _baseline[iCh]);
-    t2 = AnalysisPrototype::CalcTimeThrLinear2pt(_sigPoints[iCh], _sigTime[iCh], 0.8 * _ampli[iCh], _baseline[iCh]);
+    t1 = AnalysisPrototype::CalcTimeThrLinear2ptToTcheck(_sigPoints[iCh], _sigTime[iCh], 0.2 * _ampli[iCh], _baseline[iCh], _ToT[iCh]);
+    t2 = AnalysisPrototype::CalcTimeThrLinear2ptToTcheck(_sigPoints[iCh], _sigTime[iCh], 0.8 * _ampli[iCh], _baseline[iCh], _ToT[iCh]);
 
-    _riseTime[iCh] = t2 -t1;
+    if(t1 == 10 || t2 == 10){ // if one of the points is not determined correctly
+      _riseTime[iCh] = 10;
+      _linRegT0[iCh] = 10;
+      return;
+    }else
+      _riseTime[iCh] = t2 -t1;
     
     x.clear();
     y.clear();
@@ -396,7 +404,7 @@ void AnalyzeScopeClass::CalcRiseTimeT0(){ // CalcBaselineNoise() and CalcAmpliTi
 
 void AnalyzeScopeClass::CalcTcfd(){
   for(int iCh = 0; iCh < _nCh; ++iCh)
-    _tCFD[iCh] = AnalysisPrototype::CalcTimeThrLinear2pt(_sigPoints[iCh], _sigTime[iCh], _constFrac[iCh] * _ampli[iCh], _baseline[iCh]);
+    _tCFD[iCh] = AnalysisPrototype::CalcTimeThrLinear2ptToTcheck(_sigPoints[iCh], _sigTime[iCh], _constFrac[iCh] * _ampli[iCh], _baseline[iCh], _ToT[iCh]);
   
   return;
 }

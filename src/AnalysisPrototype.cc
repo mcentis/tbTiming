@@ -65,6 +65,52 @@ float AnalysisPrototype::CalcTimeThrLinear2pt(const std::vector<float>& tra, con
   return (thr - b)/a;
 }
 
+float AnalysisPrototype::CalcTimeThrLinear2ptToTcheck(const std::vector<float>& tra, const std::vector<float>& tim, float thr, float offset, float ToT) // check that a time over threshold cut is fulfilled
+{
+  unsigned int abovePos; // index of the point above threshold
+
+  enum state {search, check}; // use state to simplify code below: search -> no point above thr found; check -> found one point above threshold and checking for ToT;
+
+  state status = search;
+  
+  for(unsigned int i = 0; i < tra.size(); ++i){
+    if(status == search){ // look for the point above threhsold
+      if(tra[i] - offset > thr){
+	abovePos = i;
+	status = check;
+      }
+    }
+
+    if(status == check){ // check that the points after the one above threshold are also above threshold for a duration of ToT
+      if(tra[i] - offset > thr && tim[i] <= tim[abovePos] + ToT)
+	continue;
+      else
+	status = search; // if one point within the ToT cut is below theshold
+
+      if(tim[i] > tim[abovePos] + ToT) // if still in check and the time is above the one of ToT, the cut is fullfilled
+	break;
+    }    
+  }
+  
+  if(abovePos == 0 || abovePos == tra.size() -1){ // intercept abovePos == 0 to avoid problems below
+    return 10;
+  }
+    //    return tim[0];
+
+  // linear interpolation between points below and above thr
+  // y = a x + b
+  float y1 = tra[abovePos] - offset;
+  float y2 = tra[abovePos - 1] - offset;
+  float x1 = tim[abovePos];
+  float x2 = tim[abovePos - 1];
+
+  float a = (y2-y1)/(x2-x1);
+  float b = y1 -a*x1;
+
+  return (thr - b)/a;
+}
+
+
 void AnalysisPrototype::LinearReg(const std::vector<float>& x, const std::vector<float>& y, float& a, float& b)
 {
   if(x.size() != y.size() || x.size() < 2 || y.size() < 2){
