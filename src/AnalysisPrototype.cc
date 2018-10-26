@@ -67,7 +67,7 @@ float AnalysisPrototype::CalcTimeThrLinear2pt(const std::vector<float>& tra, con
 
 float AnalysisPrototype::CalcTimeThrLinear2ptToTcheck(const std::vector<float>& tra, const std::vector<float>& tim, float thr, float offset, float ToT) // check that a time over threshold cut is fulfilled
 {
-  unsigned int abovePos; // index of the point above threshold
+  unsigned int abovePos = 0; // index of the point above threshold
 
   enum state {search, check}; // use state to simplify code below: search -> no point above thr found; check -> found one point above threshold and checking for ToT;
 
