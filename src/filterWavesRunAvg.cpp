@@ -130,6 +130,8 @@ int main(int argc, char* argv[])
     
     wavTreeNew->Fill();
   }
+
+  std::cout << std::endl;
   
   preambleNew->Write();
   wavTreeNew->Write();
