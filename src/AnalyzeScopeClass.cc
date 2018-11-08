@@ -441,8 +441,10 @@ void AnalyzeScopeClass::CalcRiseTimeT0(){ // CalcBaselineNoise() and CalcAmpliTi
   std::vector<float> x, y; // used for t0 with linear regression
 
   for(int iCh = 0; iCh < _nCh; ++iCh){
-    t1 = AnalysisPrototype::CalcTimeThrLinear2ptToTcheck(_sigPoints[iCh], _sigTime[iCh], 0.2 * _ampli[iCh], _baseline[iCh], _ToT[iCh]);
-    t2 = AnalysisPrototype::CalcTimeThrLinear2ptToTcheck(_sigPoints[iCh], _sigTime[iCh], 0.8 * _ampli[iCh], _baseline[iCh], _ToT[iCh]);
+    t1 = AnalysisPrototype::CalcTimeThrLinear2pt(_leadPoints[iCh], _leadTime[iCh], 0.2 * _ampli[iCh], _baseline[iCh]);
+    t2 = AnalysisPrototype::CalcTimeThrLinear2pt(_leadPoints[iCh], _leadTime[iCh], 0.8 * _ampli[iCh], _baseline[iCh]);
+    // t1 = AnalysisPrototype::CalcTimeThrLinear2ptToTcheck(_leadPoints[iCh], _leadTime[iCh], 0.2 * _ampli[iCh], _baseline[iCh], _ToT[iCh]);
+    // t2 = AnalysisPrototype::CalcTimeThrLinear2ptToTcheck(_leadPoints[iCh], _leadTime[iCh], 0.8 * _ampli[iCh], _baseline[iCh], _ToT[iCh]);
 
     if(t1 == 10 || t2 == 10){ // if one of the points is not determined correctly
       _riseTime[iCh] = 10;
@@ -453,9 +455,9 @@ void AnalyzeScopeClass::CalcRiseTimeT0(){ // CalcBaselineNoise() and CalcAmpliTi
     
     x.clear();
     y.clear();
-    std::vector<float>::iterator itTime = _sigTime[iCh].begin();
-    std::vector<float>::iterator itVolt = _sigPoints[iCh].begin();
-    for(; itTime != _sigTime[iCh].end() && itVolt != _sigPoints[iCh].end(); ++itTime, ++itVolt){
+    std::vector<float>::iterator itTime = _leadTime[iCh].begin();
+    std::vector<float>::iterator itVolt = _leadPoints[iCh].begin();
+    for(; itTime != _leadTime[iCh].end() && itVolt != _leadPoints[iCh].end(); ++itTime, ++itVolt){
       if(*itTime > t2)
 	break;
       if(*itTime < t1)
@@ -481,7 +483,8 @@ void AnalyzeScopeClass::CalcRiseTimeT0(){ // CalcBaselineNoise() and CalcAmpliTi
 
 void AnalyzeScopeClass::CalcTcfd(){
   for(int iCh = 0; iCh < _nCh; ++iCh)
-    _tCFD[iCh] = AnalysisPrototype::CalcTimeThrLinear2ptToTcheck(_sigPoints[iCh], _sigTime[iCh], _constFrac[iCh] * _ampli[iCh], _baseline[iCh], _ToT[iCh]);
+    //_tCFD[iCh] = AnalysisPrototype::CalcTimeThrLinear2ptToTcheck(_leadPoints[iCh], _leadTime[iCh], _constFrac[iCh] * _ampli[iCh], _baseline[iCh], _ToT[iCh]);
+    _tCFD[iCh] = AnalysisPrototype::CalcTimeThrLinear2pt(_leadPoints[iCh], _leadTime[iCh], _constFrac[iCh] * _ampli[iCh], _baseline[iCh]);
   
   return;
 }
