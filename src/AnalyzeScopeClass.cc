@@ -30,7 +30,7 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _ampli = new float[_nCh];
   _integral = new float[_nCh];
   _ampliTime = new float[_nCh];
-  _ampliTimeIndex = new unsigned int[_nCh];
+  _ampliTimeIndex = new int[_nCh];
   _baseline = new float[_nCh];
   _noise = new float[_nCh];
   _riseTime = new float[_nCh];
@@ -54,8 +54,8 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _blPoints = new std::vector<float>[_nCh];
   _sigPoints = new std::vector<float>[_nCh];
   _sigTime = new std::vector<float>[_nCh];
-  //_leadPoints = new std::vector<float>[_nCh];
-  //_leadTime = new std::vector<float>[_nCh];  
+  _leadPoints = new std::vector<float>[_nCh];
+  _leadTime = new std::vector<float>[_nCh];  
 
   GetCfgValues();
   
@@ -233,6 +233,7 @@ void AnalyzeScopeClass::Analyze(){
     // calculate pulses properties
     CalcBaselineNoise();
     CalcAmpliTime();
+    SelectRisingEdge();
     CalcRiseTimeT0();
     CalcIntegral();
     CalcTcfd();
@@ -354,6 +355,31 @@ void AnalyzeScopeClass::SelectPointsFromPeak(){
     }
   }
     
+  return;
+}
+
+void AnalyzeScopeClass::SelectRisingEdge(){
+  int startIndex;
+  
+  for(int iCh = 0; iCh < _nCh; ++iCh){
+    // empty the vectors
+    _leadPoints[iCh].clear();
+    _leadTime[iCh].clear();
+    startIndex = -1;
+    
+    // select points within 3% of amplitude from baseline
+    for(int ipt = _ampliTimeIndex[iCh]; ipt >= 0; --ipt){ // find when the leading edge starts (cannot fill here, otherwise the vector is not ordered)
+      if(_sigPoints[iCh][ipt] - _baseline[iCh] < 0.03 * _ampli[iCh])
+      	break;
+      startIndex = ipt;
+    }
+    
+    for(int ipt = startIndex; ipt < _ampliTimeIndex[iCh]; ++ipt){
+      _leadPoints[iCh].push_back(_sigPoints[iCh][ipt]);
+      _leadTime[iCh].push_back(_sigTime[iCh][ipt]);
+      }
+  }
+  
   return;
 }
 

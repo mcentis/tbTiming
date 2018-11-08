@@ -27,6 +27,7 @@ private:
   void CalcAmpliTime(); // calculate signal amplitude and time at which the maximum occours
   void SelectPoints(); // fills the vectors containing the waveform points of signal and baseline
   void SelectPointsFromPeak(); // fills the vectors containing the waveform points of signal and baseline, using interval relative to peak
+  void SelectRisingEdge(); // get rising edge from signal points: from peak position till 3% of amplitude from baseline
   void CalcRiseTimeT0(); // calculate 20 to 80% rise time and t0 using linear regression of rising edge between 20 and 80 %
   void CalcIntegral(); // integrates the signal, needs the baseline, selected points, and t0
   void CalcTcfd(); // calculation of the CFD threhsold crossing, thresholds from cfg file
@@ -79,7 +80,7 @@ public: // made these public since they are needed by the analysis objects
   
   float* _ampli; // amplitudes
   float* _ampliTime; // position of the signal maximum
-  unsigned int* _ampliTimeIndex; // position of the signal maximum in the vectors
+  int* _ampliTimeIndex; // position of the signal maximum in the vectors
   float* _baseline; // baseline
   float* _noise; // event noises
   float* _riseTime; // event 20 to 80% risetime
@@ -92,8 +93,8 @@ public: // made these public since they are needed by the analysis objects
   std::vector<float>* _blPoints;
   std::vector<float>* _sigPoints;
   std::vector<float>* _sigTime;
-  //std::vector<float>* _leadPoints;
-  //std::vector<float>* _leadTime;
+  std::vector<float>* _leadPoints;
+  std::vector<float>* _leadTime;
   
   
 };
