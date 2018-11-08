@@ -30,6 +30,7 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _ampli = new float[_nCh];
   _integral = new float[_nCh];
   _ampliTime = new float[_nCh];
+  _ampliTimeIndex = new unsigned int[_nCh];
   _baseline = new float[_nCh];
   _noise = new float[_nCh];
   _riseTime = new float[_nCh];
@@ -43,13 +44,19 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _sigStart = new float[_nCh];
   _sigStop = new float[_nCh];
 
+  _blDuration = new float[_nCh];
+  _prePeak = new float[_nCh];
+  _postPeak = new float[_nCh];
+  
   _inteStart = new float[_nCh];
   _inteStop = new float[_nCh];
 
   _blPoints = new std::vector<float>[_nCh];
   _sigPoints = new std::vector<float>[_nCh];
   _sigTime = new std::vector<float>[_nCh];
-  
+  //_leadPoints = new std::vector<float>[_nCh];
+  //_leadTime = new std::vector<float>[_nCh];  
+
   GetCfgValues();
   
   RootBeautySettings();
@@ -107,6 +114,7 @@ AnalyzeScopeClass::~AnalyzeScopeClass(){
   delete[] _ampli;
   delete[] _integral;
   delete[] _ampliTime;
+  delete[] _ampliTimeIndex;
   delete[] _baseline;
   delete[] _noise;
   delete[] _riseTime;
@@ -119,6 +127,9 @@ AnalyzeScopeClass::~AnalyzeScopeClass(){
   delete[] _sigStop;
   delete[] _inteStart;
   delete[] _inteStop;
+  delete[] _prePeak;
+  delete[] _postPeak;
+  delete[] _blDuration;
 
   // delete analysis without cuts objects
   for(std::vector<AnalysisPrototype*>::iterator it = _analysisWithoutCuts.begin(); it != _analysisWithoutCuts.end(); it++)
@@ -150,7 +161,9 @@ void AnalyzeScopeClass::GetCfgValues(){
   ReadCfgArray(_sigStop, "signalStop");
   ReadCfgArray(_termination, "termination");
   ReadCfgArray(_inteStart, "inteStart");
-  ReadCfgArray(_inteStop, "inteStop");
+  ReadCfgArray(_blDuration, "blDuration");
+  ReadCfgArray(_prePeak, "prePeak");
+  ReadCfgArray(_postPeak, "postPeak");
 
   ReadTimingPairs();
 
@@ -211,6 +224,11 @@ void AnalyzeScopeClass::Analyze(){
 
     // select signal and baseline regions and apply polarity
     SelectPoints();
+
+    // do finer selection based on the peak position
+    CalcBaselineNoise();
+    CalcAmpliTime();
+    SelectPointsFromPeak();
     
     // calculate pulses properties
     CalcBaselineNoise();
@@ -244,7 +262,7 @@ void AnalyzeScopeClass::Analyze(){
   for(std::vector<AnalysisPrototype*>::iterator it = _analysisWithoutCuts.begin(); it != _analysisWithoutCuts.end(); it++)
     (*it)->Process();
 
-  // processa nalysis on selected events
+  // process analysis on selected events
   for(std::vector<AnalysisPrototype*>::iterator it = _analysisWCuts.begin(); it != _analysisWCuts.end(); it++)
     (*it)->Process();
   
@@ -309,6 +327,36 @@ void AnalyzeScopeClass::SelectPoints(){
   return;
 }
 
+void AnalyzeScopeClass::SelectPointsFromPeak(){
+  for(int iCh = 0; iCh < _nCh; ++iCh){ // empty the vectors
+    _blPoints[iCh].clear();
+    _sigPoints[iCh].clear();
+    _sigTime[iCh].clear();
+  }
+
+  for(int iCh = 0; iCh < _nCh; ++iCh){ // fill baseline vectors
+    for(unsigned int ipt = 0; ipt < _scopeTreeInter->_npt; ++ipt){ // select the points for baseline calculation
+      if(_scopeTreeInter->_time[ipt] >= _ampliTime[iCh] - _prePeak[iCh]) // interrupt the loop for points after the end of the region for the calculation
+	break;
+      if(_scopeTreeInter->_time[ipt] >= _ampliTime[iCh] - _prePeak[iCh] - _blDuration[iCh])
+	_blPoints[iCh].push_back(_scopeTreeInter->_channels[iCh][ipt] * _pol[iCh]);
+    }
+  }
+
+  for(int iCh = 0; iCh < _nCh; ++iCh){ // fill signal vectors
+    for(unsigned int ipt = 0; ipt < _scopeTreeInter->_npt; ++ipt){ // select the signal points
+      if(_scopeTreeInter->_time[ipt] > _ampliTime[iCh] + _postPeak[iCh]) // interrupt the loop for points after the end of the signal region
+	break;
+      if(_scopeTreeInter->_time[ipt] >= _ampliTime[iCh] - _prePeak[iCh]){
+	_sigPoints[iCh].push_back(_scopeTreeInter->_channels[iCh][ipt] * _pol[iCh]);
+	_sigTime[iCh].push_back(_scopeTreeInter->_time[ipt]);
+      }
+    }
+  }
+    
+  return;
+}
+
 void AnalyzeScopeClass::CalcBaselineNoise(){
   float blErr;
   float noiseErr;
@@ -331,12 +379,13 @@ void AnalyzeScopeClass::CalcAmpliTime(){ // CalcBaselineNoise() should be called
       if(_sigPoints[iCh][ipt] > _ampli[iCh]){
 	_ampli[iCh] = _sigPoints[iCh][ipt];
 	_ampliTime[iCh] = _sigTime[iCh][ipt];
-	//ptPos = ipt;
+	_ampliTimeIndex[iCh] = ipt;
       }
 
     // // =================================================
     // // interpolation using points near maximum
     // // function y = a x**2 + b x + c
+    // int ptPos = _ampliTimeIndex[iCh];
     // float y1 = _sigPoints[iCh][ptPos - 1];
     // float y2 = _sigPoints[iCh][ptPos];
     // float y3 = _sigPoints[iCh][ptPos + 1];
