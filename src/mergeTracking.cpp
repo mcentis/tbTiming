@@ -315,6 +315,8 @@ int main(int argc, char* argv[])
   scopeTrigNumTree->Branch("event", &event, "event/l");
 
   std::cout << " Creating temp tree with trig numbers from oscilloscope" << std::endl;
+
+  cycleScope = 0;
   
   for(unsigned long int i = 0; i < nEntriesScope; ++i){
     scopeTree->_wavTree->GetEntry(i);
