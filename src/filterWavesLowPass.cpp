@@ -29,12 +29,12 @@ float* GenLPFCoeff(float cutFreq, int filtLen, float dt)
   float omegac = 2 * TMath::Pi() * cutFreq * dt;
 
   for(int i = 0; i < filtLen; ++i){
-    if(i == (filtLen - 1) / 2){ // avoid nan due to the "ideal" filter denominator
-      ret[i] = 0.3; // arbitrary number, it will be corrected afterwards
-      continue;
-    }
+    // coefficients for the "ideal" filter
+    if(i == (filtLen - 1) / 2) // avoid nan due to 0 at the denominaotr for the "ideal" filter
+      ret[i] = omegac / TMath::Pi();
+    else    
+      ret[i] = TMath::Sin(omegac * (i - (filtLen - 1) / 2)) / (TMath::Pi() * (i - (filtLen - 1) / 2)); // "ideal" filter shifted and truncated
     
-    ret[i] = TMath::Sin(omegac * (i - (filtLen - 1) / 2)) / (TMath::Pi() * (i - (filtLen - 1) / 2)); // "ideal" filter shifted and truncated
     ret[i] *= 0.54 - 0.46 * TMath::Cos(2 * TMath::Pi() * i / filtLen); // Hamming window
   }
 
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
   TTree* filterProp = new TTree("filterProp", "Number of points used in the running average of each channel");
   int nCh = outCh; // to be used by tree
   filterProp->Branch("nCh", &nCh,"nCh/I");
-  filterProp->Branch("freqCut", freqCut, "freqCut[nCh]/I");
+  filterProp->Branch("freqCut", freqCut, "freqCut[nCh]/F");
   filterProp->Branch("nptFilt", nptFilt, "nptFilt[nCh]/I");
   filterProp->Fill();
   filterProp->Write();
