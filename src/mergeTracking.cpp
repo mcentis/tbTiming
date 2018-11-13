@@ -3,12 +3,16 @@
 
 #include "ConfigFileReader.hh"
 #include "ScopeTreeInterface.hh"
+#include "lineFit.hh" // class for the fit of the tracks
 
 #include "TTree.h"
 #include "TFile.h"
 #include "TH2I.h"
+#include "Math/Functor.h"
+#include "Fit/Fitter.h"
 
 const int nBits = 16; // number of bits in the beam telescope trigger counter
+const int nCh = 4; // number of oscilloscope channels
 
 // function to interpret the NIM coded event counter of the telescope used for the test beam of RD51
 // the pattern consists of 1 bit always on (to trigger) and 16 bits MSB first that constitute the counter
@@ -73,6 +77,24 @@ bool cycleNumber(long int prevTrigNum, long int trigNum, int& cycle)
   return false;
 }
 
+// function to read different parameters from the config file, modified from AnalyzeScopeClass
+template<typename T> void ReadCfgArray(T* parameter, const char* key, ConfigFileReader* cfg, int length){
+  std::string valStr = cfg->GetValue(key);
+  std::stringstream strstr(valStr);
+  std::string sub;
+  
+  for(int i = 0; i < length; ++i){
+    if(strstr.good() == false){
+      std::cout << "Error while reading config file for parameter " << key << std::endl;
+      exit(1);
+    }
+    getline(strstr, sub, ',');
+    parameter[i] = atof(sub.c_str());
+  }
+  
+  return;
+}
+
 int main(int argc, char* argv[])
 {
   if(argc != 4){
@@ -96,6 +118,11 @@ int main(int argc, char* argv[])
   float blStop = atof(cfg->GetValue("blStop").c_str()); // end of baseline for signal channel
   float sigStart = atof(cfg->GetValue("sigStart").c_str()); // start of signal region for signal channel
   float sigStop = atof(cfg->GetValue("sigStop").c_str()); // end of signal region for signal channel
+  int nRecPlanes = atoi(cfg->GetValue("nRecPlanes").c_str()); // number of telescope planes used in the (re)fitting of the tracks
+  int* recPlanes = new int[nRecPlanes];
+  ReadCfgArray(recPlanes, "recPlanes", cfg, nRecPlanes);
+  float* dutPos = new float[nCh];
+  ReadCfgArray(dutPos, "dutPos", cfg, nCh);
   
   long int nTrigScope; // from the oscilloscope waveform
   long int nTrigScopePrev; // trig number of previous entry
@@ -227,7 +254,7 @@ int main(int argc, char* argv[])
     if(ntracks == 1 && distnextcluster->at(0) != 2000) // use only the first track of one event, it is checked in the next iteration that the track is the only one of the event, the distnextcluster is 2000 when the track is not reconstructed on the plane of interest
       for(unsigned int iTrigScope = 0; iTrigScope < trigList.size(); iTrigScope++) // check if the event is in the oscilloscope trigger list
 	if(nTrigTrackCorr == trigList[iTrigScope]){ // find event with same number
-	  x = hits->at(0)[0];
+	  x = hits->at(0)[0]; // use hits on plane 0, first plane of the telescope
 	  y = hits->at(0)[1];
 	  match = true;
 	  break;
@@ -262,14 +289,24 @@ int main(int argc, char* argv[])
   // first tree
   TTree* trackHitTree = new TTree("trackHitTree_tmp", "");
   Int_t nTracks = 500; // number of tracks in the event, it is 0 if no hit is reconstructed
-  Float_t DUThits[nTracks][2]; // hit position on the telescope plane closest to the DUT (plane 0) ...to be improved...
+  Float_t DUThits[nTracks][nCh][3]; // hit position on the DUT planes (one for each oscilloscope channel)
+  Double_t pars[4]; // parameters of the tracks
   trackHitTree->Branch("cycle", &cycleTrack, "cycle/I");
   trackHitTree->Branch("nTrig", &nTrigTrackCorr, "nTrig/l");
   trackHitTree->Branch("nTracks", &nTracks, "nTracks/I");
-  trackHitTree->Branch("hits", DUThits, "hits[nTracks][2]/F");
-
+  char prop[50];
+  sprintf(prop, "hits[nTracks][%d][3]/F", nCh);
+  trackHitTree->Branch("hits", DUThits, prop);
+  trackHitTree->Branch("trackPar", pars, "trackPar[4]/D");  
+  
   cycleTrack = -nCycle; // so that cycleTrack 0 in the tree corresponds to cycleScope 0 in the next tree
 
+  // set up objects for fitting the tracks
+  std::vector<std::vector<double>> pointVec;
+  lineFit lineObj(&pointVec);
+  ROOT::Fit::Fitter fitter;
+  ROOT::Math::Functor fcn(lineObj,4);
+  
   std::cout << " Creating temp tree with hits" << std::endl;
   
   for(unsigned long int i = 0; i < nEntriesTracks; ++i){ // loop on the track tree
@@ -286,9 +323,36 @@ int main(int argc, char* argv[])
 
     nTracks = 0;
     
-    do{ // group together all tracks in one event
-      DUThits[nTracks][0] = hits->at(0)[0];
-      DUThits[nTracks][1] = hits->at(0)[1];
+    do{ // group together all tracks in one event and extrapolate them to the DUT planes
+
+      // refit the track to find parameters
+      lineObj.clear(); // empty the container
+      for(int iPlane = 0; iPlane < nRecPlanes; ++iPlane) // set the points for the fit
+	lineObj.addPoint(hits->at(recPlanes[iPlane]));
+
+      // use hits on first plane (z=0) to set offsets and set slopes to 0
+      pars[0] = hits->at(0)[0];
+      pars[1] = 0;
+      pars[2] = hits->at(0)[1];
+      pars[3] = 0;
+
+      fitter.SetFCN(fcn, pars);
+
+      if(fitter.FitFCN() != true) // do the fitting
+	std::cout << "Problem in track fitting!!!" << std::endl;
+
+      const double* res = fitter.Result().GetParams(); // retrieve the parameters
+      for(int j = 0; j < 4; ++j)
+	pars[j] = res[j];
+      
+      for(int iCh = 0; iCh < nCh; ++iCh){ // calculate hits on the planes
+	DUThits[nTracks][iCh][0] = pars[0] + pars[1] * dutPos[iCh];
+	DUThits[nTracks][iCh][1] = pars[2] + pars[3] * dutPos[iCh];
+	DUThits[nTracks][iCh][2] = dutPos[iCh];
+
+	//std::cout << DUThits[nTracks][iCh][0] << "  " << DUThits[nTracks][iCh][1] << "  " << DUThits[nTracks][iCh][2] <<std::endl;
+      }
+      
       nTracks++;
       i++;
       if(i == nEntriesTracks)
@@ -348,11 +412,14 @@ int main(int argc, char* argv[])
   TTree* hitTree = new TTree("hitTree", "hits on the detector planes");
   hitTree->Branch("event", &event, "event/l");
   hitTree->Branch("nTracks", &nTracks, "nTracks/I");
-  hitTree->Branch("hits", DUThits, "hits[nTracks][2]/F");
+  sprintf(prop, "hits[nTracks][%d][3]/F", nCh);
+  hitTree->Branch("hits", DUThits, prop);
+  hitTree->Branch("trackPar", pars, "trackPar[4]/D");  
 
   scopeTrigNumTree->SetBranchAddress("event", &event);
   trackHitTree->SetBranchAddress("nTracks", &nTracks);
   trackHitTree->SetBranchAddress("hits", DUThits);
+  trackHitTree->SetBranchAddress("trackPar", pars);  
 
   std::cout << " Creating tree with tracking data ordered per oscilloscope event" << std::endl;
   
