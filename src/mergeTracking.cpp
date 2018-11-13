@@ -301,6 +301,7 @@ int main(int argc, char* argv[])
   
   cycleTrack = -nCycle; // so that cycleTrack 0 in the tree corresponds to cycleScope 0 in the next tree
 
+  // fitting of 3d tracks from $ROOTSYS/tutorials/fit/line3Dfit.C
   // set up objects for fitting the tracks
   std::vector<std::vector<double>> pointVec;
   lineFit lineObj(&pointVec);
