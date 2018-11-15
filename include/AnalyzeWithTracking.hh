@@ -65,6 +65,8 @@ private:
   TH2F** _hitMapsWithThr; // hitmaps on each plane with threshold
   TH2F** _ampliVsX; // amplitude as a function of the position in X, in slice selected by the cut in y
   TH2F** _ampliVsY; // amplitude as a function of the position in Y, in slice selected by the cut in x
+  TH2F** _riseTimeVsX; // risetime in slices, same cuts as the amplitude plots, plus thr and max amplitude cut
+  TH2F** _riseTimeVsY; // risetime in slices, same cuts as the amplitude plots, plus thr and max amplitude cut
 };
 
 #endif //#ifndef ANALYZEWITHTRACKING_HH

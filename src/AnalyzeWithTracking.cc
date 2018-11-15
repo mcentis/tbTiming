@@ -107,14 +107,23 @@ void AnalyzeWithTracking::Analyze(){
       	_hitMapsWithThr[iCh]->Fill(_hits[_nTracks-1][iCh][0], _hits[_nTracks-1][iCh][1]);
     }
 
-    for(int iCh = 0; iCh < _nCh; ++iCh){
-      if(_hits[_nTracks-1][iCh][1] >= _ySliceLow[iCh] && _hits[_nTracks-1][iCh][1] <= _ySliceHigh[iCh])
+    for(int iCh = 0; iCh < _nCh; ++iCh){ // slices with amplitude
+      if(_hits[_nTracks-1][iCh][1] > _ySliceLow[iCh] && _hits[_nTracks-1][iCh][1] < _ySliceHigh[iCh])
 	_ampliVsX[iCh]->Fill(_hits[_nTracks-1][iCh][0], _ampli[iCh]);
 
-      if(_hits[_nTracks-1][iCh][0] >= _xSliceLow[iCh] && _hits[_nTracks-1][iCh][0] <= _xSliceHigh[iCh])
+      if(_hits[_nTracks-1][iCh][0] > _xSliceLow[iCh] && _hits[_nTracks-1][iCh][0] < _xSliceHigh[iCh])
 	_ampliVsY[iCh]->Fill(_hits[_nTracks-1][iCh][1], _ampli[iCh]);
     }
-    
+
+    for(int iCh = 0; iCh < _nCh; ++iCh) // slices with risetime
+      if(_ampli[iCh] > _thr[iCh] && _ampli[iCh] < _maxAmpliCut[iCh]){
+	if(_hits[_nTracks-1][iCh][1] > _ySliceLow[iCh] && _hits[_nTracks-1][iCh][1] < _ySliceHigh[iCh])
+	  _riseTimeVsX[iCh]->Fill(_hits[_nTracks-1][iCh][0], _riseTime[iCh]);
+	
+	if(_hits[_nTracks-1][iCh][0] > _xSliceLow[iCh] && _hits[_nTracks-1][iCh][0] < _xSliceHigh[iCh])
+	  _riseTimeVsY[iCh]->Fill(_hits[_nTracks-1][iCh][1], _riseTime[iCh]);
+      }
+
   }
 
   std::cout << std::endl;
@@ -143,15 +152,29 @@ void AnalyzeWithTracking::InitializePlots(){
   _ampliVsX = new TH2F*[_nCh];
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "ampliVsX_Ch%d", iCh+1);
-    sprintf(title, "Amplitude Ch%d;X [mm];Amplitude [V];Entries", iCh+1);
+    sprintf(title, "Amplitude Ch%d vs X, %.1f < Y < %.1f mm;X [mm];Amplitude [V];Entries", iCh+1, _ySliceLow[iCh], _ySliceHigh[iCh]);
     _ampliVsX[iCh] = new TH2F(name, title, 500, 0, 100, 200, 0, 1);
   }
 
   _ampliVsY = new TH2F*[_nCh];
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "ampliVsY_Ch%d", iCh+1);
-    sprintf(title, "Amplitude Ch%d;Y [mm];Amplitude [V];Entries", iCh+1);
+    sprintf(title, "Amplitude Ch%d vs Y, %.1f < X < %.1f mm;X [mm];Amplitude [V];Entries", iCh+1, _xSliceLow[iCh], _xSliceHigh[iCh]);
     _ampliVsY[iCh] = new TH2F(name, title, 500, -50, 50, 200, 0, 1);
+  }
+
+  _riseTimeVsX = new TH2F*[_nCh];
+  for(int iCh = 0; iCh < _nCh; ++iCh){
+    sprintf(name, "riseTimeVsX_Ch%d", iCh+1);
+    sprintf(title, "Risetime Ch%d vs X, %.1f < Y < %.1f mm, %.2f < A < %.2f V;X [mm];Risetime [s];Entries", iCh+1, _ySliceLow[iCh], _ySliceHigh[iCh], _thr[iCh], _maxAmpliCut[iCh]);
+    _riseTimeVsX[iCh] = new TH2F(name, title, 500, 0, 100, 500, 0, 10e-9);
+  }
+
+  _riseTimeVsY = new TH2F*[_nCh];
+  for(int iCh = 0; iCh < _nCh; ++iCh){
+    sprintf(name, "riseTimeVsY_Ch%d", iCh+1);
+    sprintf(title, "Risetime Ch%d vs Y, %.1f < X < %.1f mm, %.2f < A < %.2f V;Y [mm];Risetime [s];Entries", iCh+1, _xSliceLow[iCh], _xSliceHigh[iCh], _thr[iCh], _maxAmpliCut[iCh]);
+    _riseTimeVsY[iCh] = new TH2F(name, title, 500, 0, 100, 500, 0, 10e-9);
   }
 
   return;
@@ -176,7 +199,14 @@ void AnalyzeWithTracking::Save(){
     _ampliVsX[iCh]->Write();
     _ampliVsY[iCh]->Write();
   }
-  
+
+  dir = _outFile->mkdir("riseTimeSlices");
+  dir->cd();
+  for(int iCh = 0; iCh < _nCh; ++iCh){
+    _riseTimeVsX[iCh]->Write();
+    _riseTimeVsY[iCh]->Write();
+  }
+
   return;
 }
 
