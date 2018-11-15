@@ -1,15 +1,15 @@
-#ifndef ANALYSISWITHTRACKING_HH
-#define ANALYSISWITHTRACKING_HH
+#ifndef ANALYZEWITHTRACKING_HH
+#define ANALYZEWITHTRACKING_HH
 
 #include "ConfigFileReader.hh"
 #include "ScopeTreeInterface.hh"
 
-class AnalysisWithTracking{
+class AnalyzeWithTracking{
 public:
   static const int _nCh = ScopeTreeInterface::_inCh; // use the number of channels from the interface class
   
-  AnalysisWithTracking(const char* scopeAnaName, const char* trackDataName, const char* confFileName);
-  ~AnalysisWithTracking();
+  AnalyzeWithTracking(const char* scopeAnaName, const char* trackDataName, const char* confFileName);
+  ~AnalyzeWithTracking();
   void Analyze();
   void Save();
 
@@ -42,4 +42,4 @@ private:
 
 };
 
-#endif //#ifndef ANALYSISWITHTRACKING_HH
+#endif //#ifndef ANALYZEWITHTRACKING_HH

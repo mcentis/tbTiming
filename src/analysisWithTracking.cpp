@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "AnalysisWithTracking.hh"
+#include "AnalyzeWithTracking.hh"
 
 int main(int argc, char* argv[])
 {
@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  AnalysisWithTracking* analysisClass = new AnalysisWithTracking(argv[1], argv[2], argv[3]);
+  AnalyzeWithTracking* analysisClass = new AnalyzeWithTracking(argv[1], argv[2], argv[3]);
   analysisClass->Analyze();
   analysisClass->Save();
   delete analysisClass;

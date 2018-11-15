@@ -1,11 +1,11 @@
-#include "AnalysisWithTracking.hh"
+#include "AnalyzeWithTracking.hh"
 
 #include <iostream>
 
 #include "TFile.h"
 #include "TTree.h"
 
-AnalysisWithTracking::AnalysisWithTracking(const char* scopeAnaName, const char* trackDataName, const char* confFileName){
+AnalyzeWithTracking::AnalyzeWithTracking(const char* scopeAnaName, const char* trackDataName, const char* confFileName){
 
   _cfg = new ConfigFileReader(confFileName);
   _pulsePropFile = TFile::Open(scopeAnaName);
@@ -33,7 +33,7 @@ AnalysisWithTracking::AnalysisWithTracking(const char* scopeAnaName, const char*
   return;
 }
 
-AnalysisWithTracking::~AnalysisWithTracking(){
+AnalyzeWithTracking::~AnalyzeWithTracking(){
   _outFile->Close();
 
   delete[] _ampli;
@@ -50,7 +50,7 @@ AnalysisWithTracking::~AnalysisWithTracking(){
   return;
 }
 
-void AnalysisWithTracking::AssociateBranches(){
+void AnalyzeWithTracking::AssociateBranches(){
 
   _ampli = new Float_t[_nCh];
   _ampliTime = new Float_t[_nCh];
@@ -88,7 +88,7 @@ void AnalysisWithTracking::AssociateBranches(){
   return;
 }
 
-void AnalysisWithTracking::Analyze(){
+void AnalyzeWithTracking::Analyze(){
 
   long int nEntries = _pulsePropTree->GetEntries();
 
@@ -103,7 +103,7 @@ void AnalysisWithTracking::Analyze(){
   return;
 }
 
-void AnalysisWithTracking::Save(){
+void AnalyzeWithTracking::Save(){
   return;
 }
 
