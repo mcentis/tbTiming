@@ -26,7 +26,7 @@ private:
   void AssociateBranches();
   void InitializePlots();
   template<typename T> void ReadCfgArray(T* parameter, const char* key); // duplicate... check if possible to change
-  //void ReadTimingPairs();
+  void ReadTimingPairs(); // duplicate... check if possible to change
   void ReadCfg();
   
   // ============================= variables for the trees ==================
@@ -57,7 +57,9 @@ private:
   float* _ySliceLow; // array with lower limit of the cut in y
   float* _ySliceHigh; // array with higher limit of the cut in y
 
-  //std::vector<std::string> _timingPairs; // pairs of channels for the timing
+  std::vector<std::string> _timingPairs; // pairs of channels for the timing
+  int _nPairs; // number of channel pairs for the timing distribution
+  int** _pairs; // array of pairs with channel numbers (starting from 0, program notation)
 
   // ============================= plots ========================================
   
@@ -67,6 +69,8 @@ private:
   TH2F** _ampliVsY; // amplitude as a function of the position in Y, in slice selected by the cut in x
   TH2F** _riseTimeVsX; // risetime in slices, same cuts as the amplitude plots, plus thr and max amplitude cut
   TH2F** _riseTimeVsY; // risetime in slices, same cuts as the amplitude plots, plus thr and max amplitude cut
+  TH2F*** _dtVsX; // delta t in slices, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
+  TH2F*** _dtVsY; // delta t in slices, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
 };
 
 #endif //#ifndef ANALYZEWITHTRACKING_HH

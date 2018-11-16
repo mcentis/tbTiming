@@ -1,5 +1,7 @@
 #include "AnalyzeWithTracking.hh"
 
+#include "TimingFixedFraction.hh"
+
 #include <iostream>
 
 #include "TFile.h"
@@ -124,6 +126,38 @@ void AnalyzeWithTracking::Analyze(){
 	  _riseTimeVsY[iCh]->Fill(_hits[_nTracks-1][iCh][1], _riseTime[iCh]);
       }
 
+    for(int iPair = 0; iPair < _nPairs; ++iPair){ // X coordinate of timing pairs slice
+      bool passes = true; // if true, fill histo for the pair
+      for(int j = 0; j < 2; ++j){
+	int iCh = _pairs[iPair][j];
+	if(_ampli[iCh] > _thr[iCh] && _ampli[iCh] < _maxAmpliCut[iCh]) // ampli cut
+	  if(_hits[_nTracks-1][iCh][1] > _ySliceLow[iCh] && _hits[_nTracks-1][iCh][1] < _ySliceHigh[iCh]) // cut in y (for x plots)
+	    continue; // the passes variable remains true if both conditions are fulfilled
+	passes = false;
+      }
+      if(passes)
+	for(int j = 0; j < 2; ++j){
+	  int iCh = _pairs[iPair][j];
+	  _dtVsX[iPair][j]->Fill(_hits[_nTracks-1][iCh][0], _tCFD[_pairs[iPair][0]] - _tCFD[_pairs[iPair][1]]);
+	}
+    }
+
+    for(int iPair = 0; iPair < _nPairs; ++iPair){ // Y coordinate of timing pairs slice
+      bool passes = true; // if true, fill histo for the pair
+      for(int j = 0; j < 2; ++j){
+	int iCh = _pairs[iPair][j];
+	if(_ampli[iCh] > _thr[iCh] && _ampli[iCh] < _maxAmpliCut[iCh]) // ampli cut
+	  if(_hits[_nTracks-1][iCh][0] > _xSliceLow[iCh] && _hits[_nTracks-1][iCh][0] < _xSliceHigh[iCh]) // cut in x (for y plots)
+	    continue; // the passes variable remains true if both conditions are fulfilled
+	passes = false;
+      }
+      if(passes)
+	for(int j = 0; j < 2; ++j){
+	  int iCh = _pairs[iPair][j];
+	  _dtVsY[iPair][j]->Fill(_hits[_nTracks-1][iCh][1], _tCFD[_pairs[iPair][0]] - _tCFD[_pairs[iPair][1]]);
+	}
+    }
+
   }
 
   std::cout << std::endl;
@@ -177,6 +211,26 @@ void AnalyzeWithTracking::InitializePlots(){
     _riseTimeVsY[iCh] = new TH2F(name, title, 500, 0, 100, 500, 0, 10e-9);
   }
 
+  _dtVsX = new TH2F**[_nPairs];
+  for(int i = 0; i < _nPairs; ++i){
+    _dtVsX[i] = new TH2F*[2];
+    for(int j = 0; j < 2; ++j){
+      sprintf(name, "dtVsX_Ch%d-%d_onCh%d", _pairs[i][0] + 1, _pairs[i][1] + 1, _pairs[i][j] + 1);
+      sprintf(title, "#Delta t Ch%d - Ch%d vs plane Ch%d X, y slices and amplitude cuts fulfilled for both Ch;X [mm];#Delta t [s];Entries", _pairs[i][0]+1, _pairs[i][1]+1, _pairs[i][j]+1);
+      _dtVsX[i][j] = new TH2F(name, title, 500, 0, 100, 500, -10e-9, 10e-9);
+    }
+  }
+
+  _dtVsY = new TH2F**[_nPairs];
+  for(int i = 0; i < _nPairs; ++i){
+    _dtVsY[i] = new TH2F*[2];
+    for(int j = 0; j < 2; ++j){
+      sprintf(name, "dtVsY_Ch%d-%d_onCh%d", _pairs[i][0] + 1, _pairs[i][1] + 1, _pairs[i][j] + 1);
+      sprintf(title, "#Delta t Ch%d - Ch%d vs plane Ch%d Y, x slices and amplitude cuts fulfilled for both Ch;Y [mm];#Delta t [s];Entries", _pairs[i][0]+1, _pairs[i][1]+1, _pairs[i][j]+1);
+      _dtVsY[i][j] = new TH2F(name, title, 500, 0, 100, 500, -10e-9, 10e-9);
+    }
+  }
+  
   return;
 }
 
@@ -207,6 +261,14 @@ void AnalyzeWithTracking::Save(){
     _riseTimeVsY[iCh]->Write();
   }
 
+  dir = _outFile->mkdir("dtSlices");
+  dir->cd();
+  for(int i = 0; i < _nPairs; ++i)
+    for(int j = 0; j < 2; ++j){
+      _dtVsX[i][j]->Write();
+      _dtVsY[i][j]->Write();
+    }
+  
   return;
 }
 
@@ -226,25 +288,31 @@ void AnalyzeWithTracking::ReadCfg(){
   ReadCfgArray(_xSliceHigh, "xSliceHigh");
   ReadCfgArray(_ySliceLow, "ySliceLow");
   ReadCfgArray(_ySliceHigh, "ySliceHigh");
+
+  ReadTimingPairs();
+  _nPairs = _timingPairs.size();
+  _pairs = new int*[_nPairs];
+  for(int i = 0; i < _nPairs; ++i)
+    _pairs[i] = TimingFixedFraction::GetPair(_timingPairs[i], _nCh);
   
   return;
 }
 
-// void AnalyzeWithTracking::ReadTimingPairs(){ // duplicate... check if possible to change
-//   std::string valStr = _cfg->GetValue("timingPairs");
-//   std::stringstream strstr(valStr);
-//   std::string sub;
+void AnalyzeWithTracking::ReadTimingPairs(){ // duplicate... check if possible to change
+  std::string valStr = _cfg->GetValue("timingPairs");
+  std::stringstream strstr(valStr);
+  std::string sub;
   
-//   while(strstr.good()){
-//     getline(strstr, sub, ',');
-//     _timingPairs.push_back(sub);
-//   }
+  while(strstr.good()){
+    getline(strstr, sub, ',');
+    _timingPairs.push_back(sub);
+  }
 
-//   //for(std::vector<std::string>::iterator it = _timingPairs.begin(); it != _timingPairs.end(); ++it)
-//   //  std::cout << *it << std::endl;
+  // for(std::vector<std::string>::iterator it = _timingPairs.begin(); it != _timingPairs.end(); ++it)
+  //  std::cout << *it << std::endl;
   
-//   return;
-// }
+  return;
+}
 
 template<typename T> void AnalyzeWithTracking::ReadCfgArray(T* parameter, const char* key){ // duplicate... check if possible to change
   std::string valStr = _cfg->GetValue(key);
