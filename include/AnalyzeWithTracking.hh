@@ -76,7 +76,7 @@ private:
   TH2F*** _dtCFDVsY; // delta t in slices, CFD, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
   TH2F*** _dtLinReg0VsX; // delta t in slices, linear regression to 0, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
   TH2F*** _dtLinReg0VsY; // delta t in slices, linear regression to 0, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
-
+  TEfficiency** _effMap; // 2D efficiency map, threshold as for timing, saturation is removed
 };
 
 #endif //#ifndef ANALYZEWITHTRACKING_HH

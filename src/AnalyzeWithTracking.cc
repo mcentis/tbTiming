@@ -8,7 +8,7 @@
 #include "TTree.h"
 
 AnalyzeWithTracking::AnalyzeWithTracking(const char* scopeAnaName, const char* trackDataName, const char* confFileName){
-
+  
   _cfg = new ConfigFileReader(confFileName);
   _pulsePropFile = TFile::Open(scopeAnaName);
   _hitFile = TFile::Open(trackDataName);
@@ -90,7 +90,7 @@ void AnalyzeWithTracking::AssociateBranches(){
 }
 
 void AnalyzeWithTracking::Analyze(){
-
+  
   long int nEntries = _pulsePropTree->GetEntries();
 
   for(long int i = 0; i < nEntries; ++i){
@@ -118,7 +118,7 @@ void AnalyzeWithTracking::Analyze(){
     }
 
     bool detected = false;
-    for(int iCh = 0; iCh < _nCh; ++iCh){ // slices with efficiency
+    for(int iCh = 0; iCh < _nCh; ++iCh){ // slices and maps with efficiency
       if(_ampli[iCh] > _maxAmpliCut[iCh]) // remove staturating events, to have same selection as for timing
 	continue;
 
@@ -126,6 +126,8 @@ void AnalyzeWithTracking::Analyze(){
 	detected = true;
       else
 	detected = false;
+
+      _effMap[iCh]->Fill(detected, _hits[_nTracks-1][iCh][0], _hits[_nTracks-1][iCh][1]);
       
       if(_hits[_nTracks-1][iCh][1] > _ySliceLow[iCh] && _hits[_nTracks-1][iCh][1] < _ySliceHigh[iCh])
 	_effVsX[iCh]->Fill(detected, _hits[_nTracks-1][iCh][0]);
@@ -283,13 +285,20 @@ void AnalyzeWithTracking::InitializePlots(){
       _dtLinReg0VsY[i][j] = new TH2F(name, title, 500, 0, 100, 500, -10e-9, 10e-9);
     }
   }
-  
+
+  _effMap = new TEfficiency*[_nCh];
+  for(int iCh = 0; iCh < _nCh; ++iCh){
+    sprintf(name, "effMap_Ch%d", iCh+1);
+    sprintf(title, "Efficiency Map Ch%d, THR %d mV, A < %.2f V;X [mm];Y [mm];Efficiency", iCh+1, (int) (_thr[iCh] * 1000), _maxAmpliCut[iCh]);
+    _effMap[iCh] = new TEfficiency(name, title, 500, 0, 100, 500, -50, 50);
+  }
+
   return;
 }
 
 void AnalyzeWithTracking::Save(){
   _outFile->cd();
-
+  
   TDirectory* dir = _outFile->mkdir("hitMaps");
   dir->cd();
   for(int iCh = 0; iCh < _nCh; ++iCh)
@@ -337,6 +346,11 @@ void AnalyzeWithTracking::Save(){
       _dtLinReg0VsY[i][j]->Write();
     }
 
+  dir = _outFile->mkdir("efficinecyMaps");
+  dir->cd();
+  for(int iCh = 0; iCh < _nCh; ++iCh)
+    _effMap[iCh]->Write();
+  
   return;
 }
 
