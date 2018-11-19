@@ -4,6 +4,7 @@
 #include "ConfigFileReader.hh"
 #include "ScopeTreeInterface.hh"
 #include "MedianMap.hh"
+#include "MedianHist.hh"
 
 #include "TH2F.h"
 #include "TEfficiency.h"
@@ -69,6 +70,8 @@ private:
   TH2F** _hitMapsWithThr; // hitmaps on each plane with threshold and removed saturation
   TH2F** _ampliVsX; // amplitude as a function of the position in X, in slice selected by the cut in y
   TH2F** _ampliVsY; // amplitude as a function of the position in Y, in slice selected by the cut in x
+  MedianHist** _medianAmpliVsX; // median amplitude as a function of the position in X, in slice selected by the cut in y, thresholds and saturation cuts area applied
+  MedianHist** _medianAmpliVsY; // median amplitude as a function of the position in Y, in slice selected by the cut in x, thresholds and saturation cuts area applied
   TEfficiency** _effVsX; // efficiency in slices, uses the same treshold as for the selection for the timing, and removes saturation
   TEfficiency** _effVsY; // efficiency in slices, uses the same treshold as for the selection for the timing, and removes saturation
   TH2F** _riseTimeVsX; // risetime in slices, same cuts as the amplitude plots, plus thr and max amplitude cut
