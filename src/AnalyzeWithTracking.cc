@@ -187,7 +187,22 @@ void AnalyzeWithTracking::Analyze(){
 	  _dtLinReg0VsY[iPair][j]->Fill(_hits[_nTracks-1][iCh][1], _linRegT0[_pairs[iPair][0]] - _linRegT0[_pairs[iPair][1]]);
 	}
     }
-    
+
+    for(int iPair = 0; iPair < _nPairs; ++iPair){ // dt maps
+      bool passes = true; // if true, fill histos for the pair
+      for(int j = 0; j < 2; ++j){
+	int iCh = _pairs[iPair][j];
+	if(_ampli[iCh] > _thr[iCh] && _ampli[iCh] < _maxAmpliCut[iCh]) // ampli cut
+	    continue; // the passes variable remains true if conditions are fulfilled by both channels
+	passes = false;
+      }
+      if(passes)
+	for(int j = 0; j < 2; ++j){
+	  int iCh = _pairs[iPair][j];
+	  _dtCFDMap[iPair][j]->Fill(_hits[_nTracks-1][iCh][0], _hits[_nTracks-1][iCh][1], _tCFD[_pairs[iPair][0]] - _tCFD[_pairs[iPair][1]]);
+	}
+    }
+
   }
   
   std::cout << std::endl;
@@ -197,6 +212,10 @@ void AnalyzeWithTracking::Analyze(){
     _medianAmpliVsY[iCh]->Process();
     _ampliMap[iCh]->Process();
   }
+
+  for(int i = 0; i < _nPairs; ++i) // process dt maps
+    for(int j = 0; j < 2; ++j)
+      _dtCFDMap[i][j]->Process();
 
   return;
 }
@@ -329,6 +348,16 @@ void AnalyzeWithTracking::InitializePlots(){
     _effMap[iCh] = new TEfficiency(name, title, 500, 0, 100, 500, -50, 50);
   }
 
+  _dtCFDMap = new MeanStdDevMap**[_nPairs];
+  for(int i = 0; i < _nPairs; ++i){
+    _dtCFDMap[i] = new MeanStdDevMap*[2];
+    for(int j = 0; j < 2; ++j){
+      sprintf(name, "DtCFDMap_Ch%d-%d_onCh%d", _pairs[i][0] + 1, _pairs[i][1] + 1, _pairs[i][j] + 1);
+      sprintf(title, "#Delta t CFD Ch%d - Ch%d vs plane Ch%d ampli cut for both Ch;X [mm];Y [mm]; #Delta t [s]", _pairs[i][0]+1, _pairs[i][1]+1, _pairs[i][j]+1);
+      _dtCFDMap[i][j] = new MeanStdDevMap(name, title, 200, 0, 100, 200, -50, 50);
+    }
+  }
+
   return;
 }
 
@@ -398,7 +427,13 @@ void AnalyzeWithTracking::Save(){
   dir->cd();
   for(int iCh = 0; iCh < _nCh; ++iCh)
     _effMap[iCh]->Write();
-  
+
+  dir = _outFile->mkdir("dtCFDMaps");
+  dir->cd();
+  for(int i = 0; i < _nPairs; ++i)
+    for(int j = 0; j < 2; ++j)
+      _dtCFDMap[i][j]->Write(dir);
+
   return;
 }
 

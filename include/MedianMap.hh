@@ -12,7 +12,7 @@ public:
   ~MedianMap();
   void Fill(float x, float y, float val); // add a value to a vector
   virtual void Process(); // calculate the median for each bin
-  void Write(TDirectory* dir); // 
+  virtual void Write(TDirectory* dir); // 
 
 protected:
   std::vector<float>* _binContent;

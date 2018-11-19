@@ -5,6 +5,7 @@
 #include "ScopeTreeInterface.hh"
 #include "MedianMap.hh"
 #include "MedianHist.hh"
+#include "MeanStdDevMap.hh"
 
 #include "TH2F.h"
 #include "TEfficiency.h"
@@ -82,6 +83,7 @@ private:
   TH2F*** _dtLinReg0VsY; // delta t in slices, linear regression to 0, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
   MedianMap** _ampliMap; // 2D median amplitude map, threshold is used, saturation is removed
   TEfficiency** _effMap; // 2D efficiency map, threshold as for timing, saturation is removed
+  MeanStdDevMap*** _dtCFDMap; // 2D mean and std dev maps, threshold for timing and removed saturation
 };
 
 #endif //#ifndef ANALYZEWITHTRACKING_HH
