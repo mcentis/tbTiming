@@ -23,6 +23,7 @@ class AnalysisPrototype
 
   // utilities
   static void CalcMeanStdDev(const std::vector<float>& vec, float& mean, float& stdDev, float& Emean, float& EstdDev);
+  static void CalcMedian(std::vector<float> vec, float& median, float& EmedianLow, float& EmedianHigh);
   static float CalcTimeThrLinear2pt(const std::vector<float>& tra, const std::vector<float>& tim, float thr, float offset); // all arguments (except time) need to be already corrected for polarity
   static float CalcTimeThrLinear2ptToTcheck(const std::vector<float>& tra, const std::vector<float>& tim, float thr, float offset, float ToT); // all arguments (except time) need to be already corrected for polarity, check that the signal stays above threshold for a time of at least ToT
   static void LinearReg(const std::vector<float>& x, const std::vector<float>& y, float& a, float& b); // linear regression y = ax + b

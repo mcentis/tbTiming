@@ -1,6 +1,7 @@
 #include "AnalysisPrototype.hh"
 
 #include <iostream>
+#include <algorithm> // std::sort
 
 #include "TCanvas.h"
 #include "TAxis.h"
@@ -216,6 +217,56 @@ void AnalysisPrototype::CalcMeanStdDev(const std::vector<float>& vec, float& mea
     
   EstdDev = 0.5 * Emu2 / sqrt(mu2);
 
+  return;
+}
+
+void AnalysisPrototype::CalcMedian(std::vector<float> vec, float& median, float& EmedianLow, float& EmedianHigh) // do not use reference for vector, the vector is sorted in the function
+{
+  if(vec.size() == 0){
+    std::cout << "[Warning] AnalysisPrototype::CalcMedian: Too few entries to calculate anything." << std::endl;
+    median = 0;
+    EmedianHigh = 0;
+    EmedianLow = 0;
+    return;
+  }
+  
+  for(std::vector<float>::const_iterator it = vec.begin(); it != vec.end(); ++it)  // protect from nan
+    if(*it != *it){
+      std::cout << "[Warning] AnalysisPrototype::CalcMedian: Found nan in the vector." << std::endl;
+      return;
+    }
+
+  std::sort(vec.begin(), vec.end());
+  
+  int n = vec.size();
+
+  if(n % 2) // if the size is odd
+    median = vec.at(n/2);
+  else // if size is even
+    median = (vec.at(n/2) + vec.at(n/2 - 1)) / 2;
+
+  float binStdDev = sqrt(n) / 2; // standard deviation of a binomial with n as the sample size, and prob = 0.5 as defined by the median
+
+  // calculate uncertainties using the binomial standard deviation to find by how many entries from the median the values are located
+  if(n % 2){
+    if(n / 2 + (int) binStdDev >= n || n / 2 - (int) binStdDev < 0){ // protect extremes of vector
+      EmedianHigh = 0;
+      EmedianLow = 0;
+      return;
+    }
+    EmedianHigh = vec.at(n/2 + (int) binStdDev) - median;
+    EmedianLow = median - vec.at(n/2 - (int) binStdDev);
+  }
+  else{
+    if(n / 2 + (int) binStdDev >= n || n / 2 - (int) binStdDev  - 1 < 0){ // protect extremes of vector
+      EmedianHigh = 0;
+      EmedianLow = 0;
+      return;
+    }
+    EmedianHigh = (vec.at(n/2 + (int) binStdDev) + vec.at(n/2 + (int) binStdDev - 1)) / 2 - median;
+    EmedianLow = median - (vec.at(n/2 - (int) binStdDev) + vec.at(n/2 - (int) binStdDev - 1)) / 2;
+  }
+    
   return;
 }
 
