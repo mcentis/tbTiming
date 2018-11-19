@@ -3,6 +3,7 @@
 #include "TimingFixedFraction.hh"
 
 #include <iostream>
+#include <sstream>
 
 #include "TFile.h"
 #include "TTree.h"
