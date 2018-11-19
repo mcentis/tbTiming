@@ -138,7 +138,8 @@ void AnalyzeWithTracking::Analyze(){
       if(passes)
 	for(int j = 0; j < 2; ++j){
 	  int iCh = _pairs[iPair][j];
-	  _dtVsX[iPair][j]->Fill(_hits[_nTracks-1][iCh][0], _tCFD[_pairs[iPair][0]] - _tCFD[_pairs[iPair][1]]);
+	  _dtCFDVsX[iPair][j]->Fill(_hits[_nTracks-1][iCh][0], _tCFD[_pairs[iPair][0]] - _tCFD[_pairs[iPair][1]]);
+	  _dtLinReg0VsX[iPair][j]->Fill(_hits[_nTracks-1][iCh][0], _linRegT0[_pairs[iPair][0]] - _linRegT0[_pairs[iPair][1]]);
 	}
     }
 
@@ -154,7 +155,8 @@ void AnalyzeWithTracking::Analyze(){
       if(passes)
 	for(int j = 0; j < 2; ++j){
 	  int iCh = _pairs[iPair][j];
-	  _dtVsY[iPair][j]->Fill(_hits[_nTracks-1][iCh][1], _tCFD[_pairs[iPair][0]] - _tCFD[_pairs[iPair][1]]);
+	  _dtCFDVsY[iPair][j]->Fill(_hits[_nTracks-1][iCh][1], _tCFD[_pairs[iPair][0]] - _tCFD[_pairs[iPair][1]]);
+	  _dtLinReg0VsY[iPair][j]->Fill(_hits[_nTracks-1][iCh][1], _linRegT0[_pairs[iPair][0]] - _linRegT0[_pairs[iPair][1]]);
 	}
     }
 
@@ -211,26 +213,46 @@ void AnalyzeWithTracking::InitializePlots(){
     _riseTimeVsY[iCh] = new TH2F(name, title, 500, 0, 100, 500, 0, 10e-9);
   }
 
-  _dtVsX = new TH2F**[_nPairs];
+  _dtCFDVsX = new TH2F**[_nPairs];
   for(int i = 0; i < _nPairs; ++i){
-    _dtVsX[i] = new TH2F*[2];
+    _dtCFDVsX[i] = new TH2F*[2];
     for(int j = 0; j < 2; ++j){
-      sprintf(name, "dtVsX_Ch%d-%d_onCh%d", _pairs[i][0] + 1, _pairs[i][1] + 1, _pairs[i][j] + 1);
-      sprintf(title, "#Delta t Ch%d - Ch%d vs plane Ch%d X, y slices and amplitude cuts fulfilled for both Ch;X [mm];#Delta t [s];Entries", _pairs[i][0]+1, _pairs[i][1]+1, _pairs[i][j]+1);
-      _dtVsX[i][j] = new TH2F(name, title, 500, 0, 100, 500, -10e-9, 10e-9);
+      sprintf(name, "dtCFDVsX_Ch%d-%d_onCh%d", _pairs[i][0] + 1, _pairs[i][1] + 1, _pairs[i][j] + 1);
+      sprintf(title, "#Delta t CFD Ch%d - Ch%d vs plane Ch%d X, y slices and amplitude cuts fulfilled for both Ch;X [mm];#Delta t [s];Entries", _pairs[i][0]+1, _pairs[i][1]+1, _pairs[i][j]+1);
+      _dtCFDVsX[i][j] = new TH2F(name, title, 500, 0, 100, 500, -10e-9, 10e-9);
     }
   }
 
-  _dtVsY = new TH2F**[_nPairs];
+  _dtCFDVsY = new TH2F**[_nPairs];
   for(int i = 0; i < _nPairs; ++i){
-    _dtVsY[i] = new TH2F*[2];
+    _dtCFDVsY[i] = new TH2F*[2];
     for(int j = 0; j < 2; ++j){
-      sprintf(name, "dtVsY_Ch%d-%d_onCh%d", _pairs[i][0] + 1, _pairs[i][1] + 1, _pairs[i][j] + 1);
-      sprintf(title, "#Delta t Ch%d - Ch%d vs plane Ch%d Y, x slices and amplitude cuts fulfilled for both Ch;Y [mm];#Delta t [s];Entries", _pairs[i][0]+1, _pairs[i][1]+1, _pairs[i][j]+1);
-      _dtVsY[i][j] = new TH2F(name, title, 500, 0, 100, 500, -10e-9, 10e-9);
+      sprintf(name, "dtCFDVsY_Ch%d-%d_onCh%d", _pairs[i][0] + 1, _pairs[i][1] + 1, _pairs[i][j] + 1);
+      sprintf(title, "#Delta t CFD Ch%d - Ch%d vs plane Ch%d Y, x slices and amplitude cuts fulfilled for both Ch;Y [mm];#Delta t [s];Entries", _pairs[i][0]+1, _pairs[i][1]+1, _pairs[i][j]+1);
+      _dtCFDVsY[i][j] = new TH2F(name, title, 500, 0, 100, 500, -10e-9, 10e-9);
     }
   }
   
+  _dtLinReg0VsX = new TH2F**[_nPairs];
+  for(int i = 0; i < _nPairs; ++i){
+    _dtLinReg0VsX[i] = new TH2F*[2];
+    for(int j = 0; j < 2; ++j){
+      sprintf(name, "dtLinReg0VsX_Ch%d-%d_onCh%d", _pairs[i][0] + 1, _pairs[i][1] + 1, _pairs[i][j] + 1);
+      sprintf(title, "#Delta t LinReg0 Ch%d - Ch%d vs plane Ch%d X, y slices and amplitude cuts fulfilled for both Ch;X [mm];#Delta t [s];Entries", _pairs[i][0]+1, _pairs[i][1]+1, _pairs[i][j]+1);
+      _dtLinReg0VsX[i][j] = new TH2F(name, title, 500, 0, 100, 500, -10e-9, 10e-9);
+    }
+  }
+
+  _dtLinReg0VsY = new TH2F**[_nPairs];
+  for(int i = 0; i < _nPairs; ++i){
+    _dtLinReg0VsY[i] = new TH2F*[2];
+    for(int j = 0; j < 2; ++j){
+      sprintf(name, "dtLinReg0VsY_Ch%d-%d_onCh%d", _pairs[i][0] + 1, _pairs[i][1] + 1, _pairs[i][j] + 1);
+      sprintf(title, "#Delta t LinReg0 Ch%d - Ch%d vs plane Ch%d Y, x slices and amplitude cuts fulfilled for both Ch;Y [mm];#Delta t [s];Entries", _pairs[i][0]+1, _pairs[i][1]+1, _pairs[i][j]+1);
+      _dtLinReg0VsY[i][j] = new TH2F(name, title, 500, 0, 100, 500, -10e-9, 10e-9);
+    }
+  }
+
   return;
 }
 
@@ -261,14 +283,22 @@ void AnalyzeWithTracking::Save(){
     _riseTimeVsY[iCh]->Write();
   }
 
-  dir = _outFile->mkdir("dtSlices");
+  dir = _outFile->mkdir("dtCFDSlices");
   dir->cd();
   for(int i = 0; i < _nPairs; ++i)
     for(int j = 0; j < 2; ++j){
-      _dtVsX[i][j]->Write();
-      _dtVsY[i][j]->Write();
+      _dtCFDVsX[i][j]->Write();
+      _dtCFDVsY[i][j]->Write();
     }
-  
+
+  dir = _outFile->mkdir("dtLinReg0Slices");
+  dir->cd();
+  for(int i = 0; i < _nPairs; ++i)
+    for(int j = 0; j < 2; ++j){
+      _dtLinReg0VsX[i][j]->Write();
+      _dtLinReg0VsY[i][j]->Write();
+    }
+
   return;
 }
 

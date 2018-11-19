@@ -69,8 +69,10 @@ private:
   TH2F** _ampliVsY; // amplitude as a function of the position in Y, in slice selected by the cut in x
   TH2F** _riseTimeVsX; // risetime in slices, same cuts as the amplitude plots, plus thr and max amplitude cut
   TH2F** _riseTimeVsY; // risetime in slices, same cuts as the amplitude plots, plus thr and max amplitude cut
-  TH2F*** _dtVsX; // delta t in slices, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
-  TH2F*** _dtVsY; // delta t in slices, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
+  TH2F*** _dtCFDVsX; // delta t in slices, CFD, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
+  TH2F*** _dtCFDVsY; // delta t in slices, CFD, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
+  TH2F*** _dtLinReg0VsX; // delta t in slices, linear regression to 0, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
+  TH2F*** _dtLinReg0VsY; // delta t in slices, linear regression to 0, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
 };
 
 #endif //#ifndef ANALYZEWITHTRACKING_HH
