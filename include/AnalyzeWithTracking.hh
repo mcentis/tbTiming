@@ -5,6 +5,7 @@
 #include "ScopeTreeInterface.hh"
 
 #include "TH2F.h"
+#include "TEfficiency.h"
 
 class AnalyzeWithTracking{
 public:
@@ -67,12 +68,15 @@ private:
   TH2F** _hitMapsWithThr; // hitmaps on each plane with threshold
   TH2F** _ampliVsX; // amplitude as a function of the position in X, in slice selected by the cut in y
   TH2F** _ampliVsY; // amplitude as a function of the position in Y, in slice selected by the cut in x
+  TEfficiency** _effVsX; // efficiency in slices, uses the same treshold as for the selection for the timing, and removes saturation
+  TEfficiency** _effVsY; // efficiency in slices, uses the same treshold as for the selection for the timing, and removes saturation
   TH2F** _riseTimeVsX; // risetime in slices, same cuts as the amplitude plots, plus thr and max amplitude cut
   TH2F** _riseTimeVsY; // risetime in slices, same cuts as the amplitude plots, plus thr and max amplitude cut
   TH2F*** _dtCFDVsX; // delta t in slices, CFD, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
   TH2F*** _dtCFDVsY; // delta t in slices, CFD, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
   TH2F*** _dtLinReg0VsX; // delta t in slices, linear regression to 0, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
   TH2F*** _dtLinReg0VsY; // delta t in slices, linear regression to 0, same cuts as the amplitude plots, plus thr and max amplitude cut, two plots for each timing pair, one for each channel
+
 };
 
 #endif //#ifndef ANALYZEWITHTRACKING_HH

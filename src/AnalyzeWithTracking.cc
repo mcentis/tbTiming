@@ -117,6 +117,23 @@ void AnalyzeWithTracking::Analyze(){
 	_ampliVsY[iCh]->Fill(_hits[_nTracks-1][iCh][1], _ampli[iCh]);
     }
 
+    bool detected = false;
+    for(int iCh = 0; iCh < _nCh; ++iCh){ // slices with efficiency
+      if(_ampli[iCh] > _maxAmpliCut[iCh]) // remove staturating events, to have same selection as for timing
+	continue;
+
+      if(_ampli[iCh] > _thr[iCh])
+	detected = true;
+      else
+	detected = false;
+      
+      if(_hits[_nTracks-1][iCh][1] > _ySliceLow[iCh] && _hits[_nTracks-1][iCh][1] < _ySliceHigh[iCh])
+	_effVsX[iCh]->Fill(detected, _hits[_nTracks-1][iCh][0]);
+
+      if(_hits[_nTracks-1][iCh][0] > _xSliceLow[iCh] && _hits[_nTracks-1][iCh][0] < _xSliceHigh[iCh])
+	_effVsY[iCh]->Fill(detected, _hits[_nTracks-1][iCh][1]);
+    }
+
     for(int iCh = 0; iCh < _nCh; ++iCh) // slices with risetime
       if(_ampli[iCh] > _thr[iCh] && _ampli[iCh] < _maxAmpliCut[iCh]){
 	if(_hits[_nTracks-1][iCh][1] > _ySliceLow[iCh] && _hits[_nTracks-1][iCh][1] < _ySliceHigh[iCh])
@@ -195,8 +212,22 @@ void AnalyzeWithTracking::InitializePlots(){
   _ampliVsY = new TH2F*[_nCh];
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "ampliVsY_Ch%d", iCh+1);
-    sprintf(title, "Amplitude Ch%d vs Y, %.1f < X < %.1f mm;X [mm];Amplitude [V];Entries", iCh+1, _xSliceLow[iCh], _xSliceHigh[iCh]);
+    sprintf(title, "Amplitude Ch%d vs Y, %.1f < X < %.1f mm;Y [mm];Amplitude [V];Entries", iCh+1, _xSliceLow[iCh], _xSliceHigh[iCh]);
     _ampliVsY[iCh] = new TH2F(name, title, 500, -50, 50, 200, 0, 1);
+  }
+
+  _effVsX = new TEfficiency*[_nCh];
+  for(int iCh = 0; iCh < _nCh; ++iCh){
+    sprintf(name, "effVsX_Ch%d", iCh+1);
+    sprintf(title, "Efficiency Ch%d vs X, THR %d mV, A < %.2f V, %.1f < Y < %.1f mm;X [mm];Efficiency", iCh+1, (int) (_thr[iCh] * 1000), _maxAmpliCut[iCh], _ySliceLow[iCh], _ySliceHigh[iCh]);
+    _effVsX[iCh] = new TEfficiency(name, title, 500, 0, 100);
+  }
+
+  _effVsY = new TEfficiency*[_nCh];
+  for(int iCh = 0; iCh < _nCh; ++iCh){
+    sprintf(name, "effVsY_Ch%d", iCh+1);
+    sprintf(title, "Efficiency Ch%d vs Y, THR %d mV, A < %.2f V, %.1f < X < %.1f mm;Y [mm];Efficiency", iCh+1, (int) (_thr[iCh] * 1000), _maxAmpliCut[iCh], _xSliceLow[iCh], _xSliceHigh[iCh]);
+    _effVsY[iCh] = new TEfficiency(name, title, 500, -50, 50);
   }
 
   _riseTimeVsX = new TH2F*[_nCh];
@@ -252,7 +283,7 @@ void AnalyzeWithTracking::InitializePlots(){
       _dtLinReg0VsY[i][j] = new TH2F(name, title, 500, 0, 100, 500, -10e-9, 10e-9);
     }
   }
-
+  
   return;
 }
 
@@ -276,6 +307,13 @@ void AnalyzeWithTracking::Save(){
     _ampliVsY[iCh]->Write();
   }
 
+  dir = _outFile->mkdir("efficiencySlices");
+  dir->cd();
+  for(int iCh = 0; iCh < _nCh; ++iCh){
+    _effVsX[iCh]->Write();
+    _effVsY[iCh]->Write();
+  }
+  
   dir = _outFile->mkdir("riseTimeSlices");
   dir->cd();
   for(int iCh = 0; iCh < _nCh; ++iCh){
