@@ -48,7 +48,7 @@ void MedianMap::Write(TDirectory* dir){
 void MedianMap::SetHistNameTitle(){
   TString name = _histo->GetName();
   TString add = "median";
-  _histo->SetTitle(add + name);
+  _histo->SetName(add + name);
 
   TString title = _histo->GetTitle();
   add = "Median ";
