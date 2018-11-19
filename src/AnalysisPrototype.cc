@@ -155,7 +155,7 @@ void AnalysisPrototype::LinearReg(const std::vector<float>& x, const std::vector
 void AnalysisPrototype::CalcMeanStdDev(const std::vector<float>& vec, float& mean, float& stdDev, float& Emean, float& EstdDev)
 {
   if(vec.size() == 0){
-    std::cout << "[Warning] AnalyzeScopeClass::CalcMeanStdDev: Too few entries to calculate anything." << std::endl;
+    std::cout << "[Warning] AnalysisPrototype::CalcMeanStdDev: Too few entries to calculate anything." << std::endl;
     mean = 0;
     stdDev = 0;
     Emean = 0;
@@ -177,7 +177,7 @@ void AnalysisPrototype::CalcMeanStdDev(const std::vector<float>& vec, float& mea
   }
   
   if(N == 0){
-    std::cout << "[Warning] AnalyzeScopeClass::CalcMeanStdDev: Too few entries to calculate anything due to NAN." << std::endl;
+    std::cout << "[Warning] AnalysisPrototype::CalcMeanStdDev: Too few entries to calculate anything due to NAN." << std::endl;
     mean = 0;
     stdDev = 0;
     Emean = 0;
@@ -188,7 +188,7 @@ void AnalysisPrototype::CalcMeanStdDev(const std::vector<float>& vec, float& mea
   mean = sum / N; // mean
 
   if(N < 4){ // to avoid strange results in error calculation
-    std::cout << "[Warning] AnalyzeScopeClass::CalcMeanStdDev: Too few entries to calculate uncertainties. Mean " << mean << std::endl;
+    std::cout << "[Warning] AnalysisPrototype::CalcMeanStdDev: Too few entries to calculate uncertainties. Mean " << mean << std::endl;
     stdDev = 0;
     Emean = 0;
     EstdDev = 0;
