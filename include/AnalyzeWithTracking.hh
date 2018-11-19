@@ -66,7 +66,7 @@ private:
   // ============================= plots ========================================
   
   TH2F** _hitMaps; // hitmaps on each plane
-  TH2F** _hitMapsWithThr; // hitmaps on each plane with threshold
+  TH2F** _hitMapsWithThr; // hitmaps on each plane with threshold and removed saturation
   TH2F** _ampliVsX; // amplitude as a function of the position in X, in slice selected by the cut in y
   TH2F** _ampliVsY; // amplitude as a function of the position in Y, in slice selected by the cut in x
   TEfficiency** _effVsX; // efficiency in slices, uses the same treshold as for the selection for the timing, and removes saturation

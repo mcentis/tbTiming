@@ -105,8 +105,10 @@ void AnalyzeWithTracking::Analyze(){
     for(int iCh = 0; iCh < _nCh; ++iCh){ // hitmaps
       _hitMaps[iCh]->Fill(_hits[_nTracks-1][iCh][0], _hits[_nTracks-1][iCh][1]);
 
-      if(_ampli[iCh] > _thr[iCh])
-      	_hitMapsWithThr[iCh]->Fill(_hits[_nTracks-1][iCh][0], _hits[_nTracks-1][iCh][1]);
+      if(_ampli[iCh] > _thr[iCh] && _ampli[iCh] < _maxAmpliCut[iCh]){
+      	_hitMapsWithThr[iCh]->Fill(_hits[_nTracks-1][iCh][0], _hits[_nTracks-1][iCh][1]); // hitmap
+	_ampliMap[iCh]->Fill(_hits[_nTracks-1][iCh][0], _hits[_nTracks-1][iCh][1], _ampli[iCh]); // amplitude map
+      }
     }
 
     for(int iCh = 0; iCh < _nCh; ++iCh){ // slices with amplitude
@@ -178,10 +180,6 @@ void AnalyzeWithTracking::Analyze(){
 	  _dtLinReg0VsY[iPair][j]->Fill(_hits[_nTracks-1][iCh][1], _linRegT0[_pairs[iPair][0]] - _linRegT0[_pairs[iPair][1]]);
 	}
     }
-
-    for(int iCh = 0; iCh < _nCh; ++iCh) // amplitude maps
-      if(_ampli[iCh] > _thr[iCh] && _ampli[iCh] < _maxAmpliCut[iCh])
-      	_ampliMap[iCh]->Fill(_hits[_nTracks-1][iCh][0], _hits[_nTracks-1][iCh][1], _ampli[iCh]);
     
   }
   
@@ -202,14 +200,14 @@ void AnalyzeWithTracking::InitializePlots(){
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "hitMap_Ch%d", iCh+1);
     sprintf(title, "Hit Map Ch%d;X [mm];Y [mm];Entries", iCh+1);
-    _hitMaps[iCh] = new TH2F(name, title, 500, 0, 100, 500, -50, 50);
+    _hitMaps[iCh] = new TH2F(name, title, 200, 0, 100, 200, -50, 50);
   }
 
   _hitMapsWithThr = new TH2F*[_nCh];
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "hitMapWithThr_Ch%d", iCh+1);
-    sprintf(title, "Hit Map Ch%d threshold %d mV;X [mm];Y [mm];Entries", iCh+1, (int) (_thr[iCh] * 1000));
-    _hitMapsWithThr[iCh] = new TH2F(name, title, 500, 0, 100, 500, -50, 50);
+    sprintf(title, "Hit Map Ch%d %.2f < A < %.2f V;X [mm];Y [mm];Entries", iCh+1, _thr[iCh], _maxAmpliCut[iCh]);
+    _hitMapsWithThr[iCh] = new TH2F(name, title, 200, 0, 100, 200, -50, 50);
   }
 
   _ampliVsX = new TH2F*[_nCh];
