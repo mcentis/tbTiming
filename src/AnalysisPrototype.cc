@@ -223,7 +223,7 @@ void AnalysisPrototype::CalcMeanStdDev(const std::vector<float>& vec, float& mea
 void AnalysisPrototype::CalcMedian(std::vector<float> vec, float& median, float& EmedianLow, float& EmedianHigh) // do not use reference for vector, the vector is sorted in the function
 {
   if(vec.size() == 0){
-    std::cout << "[Warning] AnalysisPrototype::CalcMedian: Too few entries to calculate anything." << std::endl;
+    //std::cout << "[Warning] AnalysisPrototype::CalcMedian: Too few entries to calculate anything." << std::endl;
     median = 0;
     EmedianHigh = 0;
     EmedianLow = 0;

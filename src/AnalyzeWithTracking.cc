@@ -105,7 +105,7 @@ void AnalyzeWithTracking::Analyze(){
     for(int iCh = 0; iCh < _nCh; ++iCh){ // hitmaps
       _hitMaps[iCh]->Fill(_hits[_nTracks-1][iCh][0], _hits[_nTracks-1][iCh][1]);
 
-      if(_ampli[iCh] >= _thr[iCh])
+      if(_ampli[iCh] > _thr[iCh])
       	_hitMapsWithThr[iCh]->Fill(_hits[_nTracks-1][iCh][0], _hits[_nTracks-1][iCh][1]);
     }
 
@@ -179,10 +179,18 @@ void AnalyzeWithTracking::Analyze(){
 	}
     }
 
+    for(int iCh = 0; iCh < _nCh; ++iCh) // amplitude maps
+      if(_ampli[iCh] > _thr[iCh] && _ampli[iCh] < _maxAmpliCut[iCh])
+      	_ampliMap[iCh]->Fill(_hits[_nTracks-1][iCh][0], _hits[_nTracks-1][iCh][1], _ampli[iCh]);
+    
+  }
+  
+  std::cout << std::endl;
+
+  for(int iCh = 0; iCh < _nCh; ++iCh){ // process objects in need
+    _ampliMap[iCh]->Process();
   }
 
-  std::cout << std::endl;
-  
   return;
 }
 
@@ -286,6 +294,13 @@ void AnalyzeWithTracking::InitializePlots(){
     }
   }
 
+  _ampliMap = new MedianMap*[_nCh];
+  for(int iCh = 0; iCh < _nCh; ++iCh){
+    sprintf(name, "AmpliMap_Ch%d", iCh+1);
+    sprintf(title, "amplitude Map Ch%d, %.2f < A < %.2f V;X [mm];Y [mm];Median Amplitude [V]", iCh+1, _thr[iCh], _maxAmpliCut[iCh]);
+    _ampliMap[iCh] = new MedianMap(name, title, 200, 0, 100, 200, -50, 50);
+  }
+  
   _effMap = new TEfficiency*[_nCh];
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "effMap_Ch%d", iCh+1);
@@ -346,6 +361,11 @@ void AnalyzeWithTracking::Save(){
       _dtLinReg0VsY[i][j]->Write();
     }
 
+  dir = _outFile->mkdir("amplitudeMaps");
+  dir->cd();
+  for(int iCh = 0; iCh < _nCh; ++iCh)
+    _ampliMap[iCh]->Write(dir);
+  
   dir = _outFile->mkdir("efficinecyMaps");
   dir->cd();
   for(int iCh = 0; iCh < _nCh; ++iCh)
