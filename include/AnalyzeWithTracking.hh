@@ -87,6 +87,7 @@ private:
   MedianMap** _ampliMap; // 2D median amplitude map, threshold is used, saturation is removed
   TEfficiency** _effMap; // 2D efficiency map, threshold as for timing, saturation is removed
   MeanStdDevMap*** _dtCFDMap; // 2D mean and std dev maps, threshold for timing and removed saturation
+  TH1F** _dtCFDdistr; // distribution of dt for each timing pair, CFD, threshold, max ampli cut, both x and y slices cuts are used
 };
 
 #endif //#ifndef ANALYZEWITHTRACKING_HH

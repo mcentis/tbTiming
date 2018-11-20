@@ -207,6 +207,20 @@ void AnalyzeWithTracking::Analyze(){
 	}
     }
 
+    for(int iPair = 0; iPair < _nPairs; ++iPair){ // dt distribution using all geometrical and ampli cuts for the pair
+      bool passes = true; // if true, fill histo for the pair
+      for(int j = 0; j < 2; ++j){
+	int iCh = _pairs[iPair][j];
+	if(_ampli[iCh] > _thr[iCh] && _ampli[iCh] < _maxAmpliCut[iCh]) // ampli cut
+	  if(_hits[_nTracks-1][iCh][0] > _xSliceLow[iCh] && _hits[_nTracks-1][iCh][0] < _xSliceHigh[iCh]) // cut in x 
+	    if(_hits[_nTracks-1][iCh][1] > _ySliceLow[iCh] && _hits[_nTracks-1][iCh][1] < _ySliceHigh[iCh]) // cut in y 
+	      continue; // the passes variable remains true if all conditions are fulfilled
+	passes = false;
+      }
+      if(passes)
+	_dtCFDdistr[iPair]->Fill(_tCFD[_pairs[iPair][0]] - _tCFD[_pairs[iPair][1]]);
+    }
+    
   }
   
   std::cout << std::endl;
@@ -385,6 +399,13 @@ void AnalyzeWithTracking::InitializePlots(){
     }
   }
 
+  _dtCFDdistr = new TH1F*[_nPairs];
+  for(int i = 0; i < _nPairs; ++i){
+      sprintf(name, "dtCFDVsX_Ch%d-%d", _pairs[i][0] + 1, _pairs[i][1] + 1);
+      sprintf(title, "#Delta t CFD Ch%d - Ch%d, x and y slices and amplitude cuts fulfilled for both Ch;#Delta t [s];Entries", _pairs[i][0]+1, _pairs[i][1]+1);
+      _dtCFDdistr[i] = new TH1F(name, title, 1500, -10e-9, 10e-9);
+  }
+
   return;
 }
 
@@ -468,6 +489,11 @@ void AnalyzeWithTracking::Save(){
   for(int i = 0; i < _nPairs; ++i)
     for(int j = 0; j < 2; ++j)
       _dtCFDMap[i][j]->Write(dir);
+
+  dir = _outFile->mkdir("dtCFDdistr");
+  dir->cd();
+  for(int i = 0; i < _nPairs; ++i)
+      _dtCFDdistr[i]->Write();
 
   return;
 }
