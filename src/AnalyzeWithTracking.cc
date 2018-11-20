@@ -149,6 +149,9 @@ void AnalyzeWithTracking::Analyze(){
 
     for(int iCh = 0; iCh < _nCh; ++iCh) // slices with risetime
       if(_ampli[iCh] > _thr[iCh] && _ampli[iCh] < _maxAmpliCut[iCh]){
+
+	_riseTimeMap[iCh]->Fill(_hits[_nTracks-1][iCh][0], _hits[_nTracks-1][iCh][1], _riseTime[iCh]);
+	
 	if(_hits[_nTracks-1][iCh][1] > _ySliceLow[iCh] && _hits[_nTracks-1][iCh][1] < _ySliceHigh[iCh])
 	  _riseTimeVsX[iCh]->Fill(_hits[_nTracks-1][iCh][0], _riseTime[iCh]);
 	
@@ -228,6 +231,7 @@ void AnalyzeWithTracking::Analyze(){
   for(int iCh = 0; iCh < _nCh; ++iCh){ // process objects in need
     _medianAmpliVsX[iCh]->Process();
     _medianAmpliVsY[iCh]->Process();
+    _riseTimeMap[iCh]->Process();
     _ampliMap[iCh]->Process();
   }
 
@@ -312,7 +316,14 @@ void AnalyzeWithTracking::InitializePlots(){
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "riseTimeVsY_Ch%d", iCh+1);
     sprintf(title, "Risetime Ch%d vs Y, %.1f < X < %.1f mm, %.2f < A < %.2f V;Y [mm];Risetime [s];Entries", iCh+1, _xSliceLow[iCh], _xSliceHigh[iCh], _thr[iCh], _maxAmpliCut[iCh]);
-    _riseTimeVsY[iCh] = new TH2F(name, title, 500, 0, 100, 500, 0, 10e-9);
+    _riseTimeVsY[iCh] = new TH2F(name, title, 500, -50, 50, 500, 0, 10e-9);
+  }
+
+  _riseTimeMap = new MeanStdDevMap*[_nCh];
+  for(int iCh = 0; iCh < _nCh; ++iCh){
+    sprintf(name, "RiseTime_Ch%d", iCh+1);
+    sprintf(title, "Risetime Ch%d, %.2f < A < %.2f V;X [mm];Y [mm];Risetime [s]", iCh+1, _thr[iCh], _maxAmpliCut[iCh]);
+    _riseTimeMap[iCh] = new MeanStdDevMap(name, title, 200, 0, 100, 200, -50, 50);
   }
 
   _dtCFDVsX = new TH2F**[_nPairs];
@@ -449,6 +460,11 @@ void AnalyzeWithTracking::Save(){
     _riseTimeVsX[iCh]->Write();
     _riseTimeVsY[iCh]->Write();
   }
+
+  dir = _outFile->mkdir("riseTimeMaps");
+  dir->cd();
+  for(int iCh = 0; iCh < _nCh; ++iCh)
+    _riseTimeMap[iCh]->Write(dir);
 
   dir = _outFile->mkdir("dtCFDSlices");
   dir->cd();
