@@ -15,9 +15,9 @@ public:
   ~AnalyzeScopeClass();
   void Analyze(); // loop on the events
   void Save(); // save stuff, necessary to call this function otherwise there will be a core dump... to be investigated
+  static void RootBeautySettings(); // style for plotting
   
 private:
-  void RootBeautySettings(); // style for plotting
   void GetCfgValues(); // extract values from cfg file
   template<typename T> void ReadCfgArray(T* parameter, const char* key); // read a string separated by , to assign the values to the parameters used in the analysis
 

@@ -1,5 +1,5 @@
 #include "AnalyzeWithTracking.hh"
-
+#include "AnalyzeScopeClass.hh"
 #include "TimingFixedFraction.hh"
 
 #include <iostream>
@@ -21,7 +21,9 @@ AnalyzeWithTracking::AnalyzeWithTracking(const char* scopeAnaName, const char* t
   AssociateBranches();
 
   ReadCfg();
-  
+
+  AnalyzeScopeClass::RootBeautySettings();
+    
   // open output root file
   std::string outFileName = scopeAnaName;
   std::string rep = std::string("/"); // to be replaced
