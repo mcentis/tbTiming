@@ -168,6 +168,7 @@ void AnalyzeWithTracking::Analyze(){
 	  int iCh = _pairs[iPair][j];
 	  _dtCFDVsX[iPair][j]->Fill(_hits[_nTracks-1][iCh][0], _tCFD[_pairs[iPair][0]] - _tCFD[_pairs[iPair][1]]);
 	  _dtLinReg0VsX[iPair][j]->Fill(_hits[_nTracks-1][iCh][0], _linRegT0[_pairs[iPair][0]] - _linRegT0[_pairs[iPair][1]]);
+	  _meanStdDevdtCFDVsX[iPair][j]->Fill(_hits[_nTracks-1][iCh][0], _tCFD[_pairs[iPair][0]] - _tCFD[_pairs[iPair][1]]);
 	}
     }
 
@@ -185,6 +186,7 @@ void AnalyzeWithTracking::Analyze(){
 	  int iCh = _pairs[iPair][j];
 	  _dtCFDVsY[iPair][j]->Fill(_hits[_nTracks-1][iCh][1], _tCFD[_pairs[iPair][0]] - _tCFD[_pairs[iPair][1]]);
 	  _dtLinReg0VsY[iPair][j]->Fill(_hits[_nTracks-1][iCh][1], _linRegT0[_pairs[iPair][0]] - _linRegT0[_pairs[iPair][1]]);
+	  _meanStdDevdtCFDVsY[iPair][j]->Fill(_hits[_nTracks-1][iCh][1], _tCFD[_pairs[iPair][0]] - _tCFD[_pairs[iPair][1]]);
 	}
     }
 
@@ -214,9 +216,12 @@ void AnalyzeWithTracking::Analyze(){
   }
 
   for(int i = 0; i < _nPairs; ++i) // process dt maps
-    for(int j = 0; j < 2; ++j)
+    for(int j = 0; j < 2; ++j){
+      _meanStdDevdtCFDVsX[i][j]->Process();
+      _meanStdDevdtCFDVsY[i][j]->Process();
       _dtCFDMap[i][j]->Process();
-
+    }
+  
   return;
 }
 
@@ -334,6 +339,26 @@ void AnalyzeWithTracking::InitializePlots(){
     }
   }
 
+  _meanStdDevdtCFDVsX = new MeanStdDevHist**[_nPairs];
+  for(int i = 0; i < _nPairs; ++i){
+    _meanStdDevdtCFDVsX[i] = new MeanStdDevHist*[2];
+    for(int j = 0; j < 2; ++j){
+      sprintf(name, "DtCFDVsX_Ch%d-%d_onCh%d", _pairs[i][0] + 1, _pairs[i][1] + 1, _pairs[i][j] + 1);
+      sprintf(title, "#Delta t CFD Ch%d - Ch%d vs plane Ch%d X, y slices and amplitude cuts fulfilled for both Ch;X [mm];#Delta t [s]", _pairs[i][0]+1, _pairs[i][1]+1, _pairs[i][j]+1);
+      _meanStdDevdtCFDVsX[i][j] = new MeanStdDevHist(name, title, 500, 0, 100);
+    }
+  }
+
+  _meanStdDevdtCFDVsY = new MeanStdDevHist**[_nPairs];
+  for(int i = 0; i < _nPairs; ++i){
+    _meanStdDevdtCFDVsY[i] = new MeanStdDevHist*[2];
+    for(int j = 0; j < 2; ++j){
+      sprintf(name, "DtCFDVsY_Ch%d-%d_onCh%d", _pairs[i][0] + 1, _pairs[i][1] + 1, _pairs[i][j] + 1);
+      sprintf(title, "#Delta t CFD Ch%d - Ch%d vs plane Ch%d Y, x slices and amplitude cuts fulfilled for both Ch;Y [mm];#Delta t [s]", _pairs[i][0]+1, _pairs[i][1]+1, _pairs[i][j]+1);
+      _meanStdDevdtCFDVsY[i][j] = new MeanStdDevHist(name, title, 500, 0, 100);
+    }
+  }
+  
   _ampliMap = new MedianMap*[_nCh];
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "AmpliMap_Ch%d", iCh+1);
@@ -410,6 +435,14 @@ void AnalyzeWithTracking::Save(){
       _dtCFDVsY[i][j]->Write();
     }
 
+  dir = _outFile->mkdir("meanStdDevdtCFDSlices");
+  dir->cd();
+  for(int i = 0; i < _nPairs; ++i)
+    for(int j = 0; j < 2; ++j){
+      _meanStdDevdtCFDVsX[i][j]->Write(dir);
+      _meanStdDevdtCFDVsY[i][j]->Write(dir);
+    }
+  
   dir = _outFile->mkdir("dtLinReg0Slices");
   dir->cd();
   for(int i = 0; i < _nPairs; ++i)
