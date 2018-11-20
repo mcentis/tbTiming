@@ -380,7 +380,7 @@ void AnalyzeWithTracking::InitializePlots(){
     _dtCFDMap[i] = new MeanStdDevMap*[2];
     for(int j = 0; j < 2; ++j){
       sprintf(name, "DtCFDMap_Ch%d-%d_onCh%d", _pairs[i][0] + 1, _pairs[i][1] + 1, _pairs[i][j] + 1);
-      sprintf(title, "#Delta t CFD Ch%d - Ch%d vs plane Ch%d ampli cut for both Ch;X [mm];Y [mm]; #Delta t [s]", _pairs[i][0]+1, _pairs[i][1]+1, _pairs[i][j]+1);
+      sprintf(title, "#Delta t CFD Ch%d - Ch%d plane Ch%d ampli cut for both Ch;X [mm];Y [mm];#Delta t [s]", _pairs[i][0]+1, _pairs[i][1]+1, _pairs[i][j]+1);
       _dtCFDMap[i][j] = new MeanStdDevMap(name, title, 200, 0, 100, 200, -50, 50);
     }
   }
