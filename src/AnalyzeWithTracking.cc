@@ -210,6 +210,12 @@ void AnalyzeWithTracking::Analyze(){
 	}
     }
 
+    for(int iCh = 0; iCh < _nCh; ++iCh) // risetime distribution with all cuts for amplitude, x, and y
+      if(_ampli[iCh] > _thr[iCh] && _ampli[iCh] < _maxAmpliCut[iCh]) // ampli cut
+	if(_hits[_nTracks-1][iCh][0] > _xSliceLow[iCh] && _hits[_nTracks-1][iCh][0] < _xSliceHigh[iCh]) // cut in x 
+	  if(_hits[_nTracks-1][iCh][1] > _ySliceLow[iCh] && _hits[_nTracks-1][iCh][1] < _ySliceHigh[iCh]) // cut in y 
+	    _riseTimeDistr[iCh]->Fill(_riseTime[iCh]);
+	    
     for(int iPair = 0; iPair < _nPairs; ++iPair){ // dt distribution using all geometrical and ampli cuts for the pair
       bool passes = true; // if true, fill histo for the pair
       for(int j = 0; j < 2; ++j){
@@ -410,6 +416,13 @@ void AnalyzeWithTracking::InitializePlots(){
     }
   }
 
+  _riseTimeDistr = new TH1F*[_nCh];
+  for(int iCh = 0; iCh < _nCh; ++iCh){
+    sprintf(name, "riseTimeDistr_Ch%d", iCh+1);
+    sprintf(title, "Risetime Ch%d, x and y slices and amplitude cuts fulfilled;Risetime [s];Entries", iCh+1);
+    _riseTimeDistr[iCh] = new TH1F(name, title, 400, 0, 3e-9);
+  }
+
   _dtCFDdistr = new TH1F*[_nPairs];
   for(int i = 0; i < _nPairs; ++i){
       sprintf(name, "dtCFDVsX_Ch%d-%d", _pairs[i][0] + 1, _pairs[i][1] + 1);
@@ -505,6 +518,11 @@ void AnalyzeWithTracking::Save(){
   for(int i = 0; i < _nPairs; ++i)
     for(int j = 0; j < 2; ++j)
       _dtCFDMap[i][j]->Write(dir);
+
+  dir = _outFile->mkdir("riseTimeDistr");
+  dir->cd();
+  for(int iCh = 0; iCh < _nCh; ++iCh)
+      _riseTimeDistr[iCh]->Write();
 
   dir = _outFile->mkdir("dtCFDdistr");
   dir->cd();
