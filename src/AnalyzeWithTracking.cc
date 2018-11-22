@@ -86,6 +86,7 @@ void AnalyzeWithTracking::AssociateBranches(){
   _hitTree->SetBranchAddress("nTracks", &_nTracks);
   _hitTree->SetBranchAddress("hits", _hits);
   _hitTree->SetBranchAddress("trackPar", _pars);
+  _hitTree->SetBranchAddress("minFCN", _minFCN);
   _hitTree->SetBranchAddress("recoTrackChi2", _recoTrackChi2);
   _hitTree->SetBranchAddress("recoNdetsInTrack", _recoNdetsInTrack);
 
@@ -104,7 +105,13 @@ void AnalyzeWithTracking::Analyze(){
     
     if(_nTracks != 1) // use only events with one track
       continue;
-    
+
+    if(_recoNdetsInTrack[_nTracks-1] != 6) // use only tracks where all GEM planes see a hit
+      continue;
+
+    if(_recoTrackChi2[_nTracks-1] > _trackChi2cut) // track chi square cut
+      continue;
+
     for(int iCh = 0; iCh < _nCh; ++iCh){ // hitmaps
       _hitMaps[iCh]->Fill(_hits[_nTracks-1][iCh][0], _hits[_nTracks-1][iCh][1]);
 
@@ -230,7 +237,22 @@ void AnalyzeWithTracking::Analyze(){
 	_dtCFDdistr[iPair]->Fill(_tCFD[_pairs[iPair][0]] - _tCFD[_pairs[iPair][1]]);
     }
     
-  }
+    for(int iPair = 0; iPair < _nPairs; ++iPair){ // dt distribution using all geometrical and ampli cuts for the pair, and RISETIME cut
+      bool passes = true; // if true, fill histo for the pair
+      for(int j = 0; j < 2; ++j){
+	int iCh = _pairs[iPair][j];
+	if(_ampli[iCh] > _thr[iCh] && _ampli[iCh] < _maxAmpliCut[iCh]) // ampli cut
+	  if(_riseTime[iCh] > _minRiseTimeCut[iCh] && _riseTime[iCh] < _maxRiseTimeCut[iCh]) // RISETIME cut
+	    if(_hits[_nTracks-1][iCh][0] > _xSliceLow[iCh] && _hits[_nTracks-1][iCh][0] < _xSliceHigh[iCh]) // cut in x 
+	      if(_hits[_nTracks-1][iCh][1] > _ySliceLow[iCh] && _hits[_nTracks-1][iCh][1] < _ySliceHigh[iCh]) // cut in y 
+		continue; // the passes variable remains true if all conditions are fulfilled
+	passes = false;
+      }
+      if(passes)
+	_dtCFDdistrRiseCut[iPair]->Fill(_tCFD[_pairs[iPair][0]] - _tCFD[_pairs[iPair][1]]);
+    }
+
+  } // loop on the events
   
   std::cout << std::endl;
 
@@ -425,9 +447,16 @@ void AnalyzeWithTracking::InitializePlots(){
 
   _dtCFDdistr = new TH1F*[_nPairs];
   for(int i = 0; i < _nPairs; ++i){
-      sprintf(name, "dtCFDVsX_Ch%d-%d", _pairs[i][0] + 1, _pairs[i][1] + 1);
+      sprintf(name, "dtCFDdistr_Ch%d-%d", _pairs[i][0] + 1, _pairs[i][1] + 1);
       sprintf(title, "#Delta t CFD Ch%d - Ch%d, x and y slices and amplitude cuts fulfilled for both Ch;#Delta t [s];Entries", _pairs[i][0]+1, _pairs[i][1]+1);
       _dtCFDdistr[i] = new TH1F(name, title, 1500, -10e-9, 10e-9);
+  }
+
+  _dtCFDdistrRiseCut = new TH1F*[_nPairs];
+  for(int i = 0; i < _nPairs; ++i){
+      sprintf(name, "dtCFDdistrRiseCut_Ch%d-%d", _pairs[i][0] + 1, _pairs[i][1] + 1);
+      sprintf(title, "#Delta t CFD Ch%d - Ch%d, x and y slices, amplitude, and RISETIME cuts fulfilled for both Ch;#Delta t [s];Entries", _pairs[i][0]+1, _pairs[i][1]+1);
+      _dtCFDdistrRiseCut[i] = new TH1F(name, title, 1500, -10e-9, 10e-9);
   }
 
   return;
@@ -529,6 +558,11 @@ void AnalyzeWithTracking::Save(){
   for(int i = 0; i < _nPairs; ++i)
       _dtCFDdistr[i]->Write();
 
+  dir = _outFile->mkdir("dtCFDdistrRiseCut");
+  dir->cd();
+  for(int i = 0; i < _nPairs; ++i)
+      _dtCFDdistrRiseCut[i]->Write();
+
   return;
 }
 
@@ -540,6 +574,9 @@ void AnalyzeWithTracking::ReadCfg(){
   _xSliceHigh = new float[_nCh];
   _ySliceLow = new float[_nCh];
   _ySliceHigh = new float[_nCh];
+
+  _minRiseTimeCut = new float[_nCh];
+  _maxRiseTimeCut = new float[_nCh];
   
   ReadCfgArray(_thr, "threshold");
   ReadCfgArray(_maxAmpliCut, "maxAmpli");
@@ -549,11 +586,16 @@ void AnalyzeWithTracking::ReadCfg(){
   ReadCfgArray(_ySliceLow, "ySliceLow");
   ReadCfgArray(_ySliceHigh, "ySliceHigh");
 
+  _trackChi2cut = atof(_cfg->GetValue("trackMaxChi2").c_str());
+  
   ReadTimingPairs();
   _nPairs = _timingPairs.size();
   _pairs = new int*[_nPairs];
   for(int i = 0; i < _nPairs; ++i)
     _pairs[i] = TimingFixedFraction::GetPair(_timingPairs[i], _nCh);
+
+  ReadCfgArray(_minRiseTimeCut, "minRiseTime");
+  ReadCfgArray(_maxRiseTimeCut, "maxRiseTime");
   
   return;
 }

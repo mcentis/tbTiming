@@ -52,6 +52,7 @@ private:
   Int_t _nTracks; // number of tracks in the event, it is 0 if no hit is reconstructed
   Float_t _hits[500][_nCh][3]; // hit position on the DUT planes (one for each oscilloscope channel)
   Double_t _pars[500][4]; // parameters of the tracks
+  Double_t _minFCN[500]; // minimum of the function minimized for track re-fitting, it is strongly correlated to recoTrackChi2, so a cut on the latter variable is sufficient
   Double_t _recoTrackChi2[500]; // track fit chi2 from the reconstruction SW of the beam telescope (not related to pars)
   Int_t _recoNdetsInTrack[500]; // number of planes used in the track reconstruction by telescope SW (2 for each GEM plane, x and y treated separately)
   
@@ -64,10 +65,15 @@ private:
   float* _ySliceLow; // array with lower limit of the cut in y
   float* _ySliceHigh; // array with higher limit of the cut in y
 
+  float _trackChi2cut; // maximum value of the chi2 of the tracks reconstructed by the telescope SW
+  
   std::vector<std::string> _timingPairs; // pairs of channels for the timing
   int _nPairs; // number of channel pairs for the timing distribution
   int** _pairs; // array of pairs with channel numbers (starting from 0, program notation)
 
+  float* _minRiseTimeCut; // array with minimum risetime cut in s, used for the dt distributions
+  float* _maxRiseTimeCut; // array with maximum risetime cut in s, used for the dt distributions
+  
   // ============================= plots ========================================
   
   TH2F** _hitMaps; // hitmaps on each plane
@@ -92,6 +98,7 @@ private:
   MeanStdDevMap*** _dtCFDMap; // 2D mean and std dev maps, threshold for timing and removed saturation
   TH1F** _riseTimeDistr; // distribution of risetime for each ch, same selection used for dtCFD distribution, but applied to each ch separately
   TH1F** _dtCFDdistr; // distribution of dt for each timing pair, CFD, threshold, max ampli cut, both x and y slices cuts are used
+  TH1F** _dtCFDdistrRiseCut; // distribution of dt for each timing pair, CFD, threshold, max ampli cut, both x and y slices cuts are used, also risetime cuts are used
 };
 
 #endif //#ifndef ANALYZEWITHTRACKING_HH
