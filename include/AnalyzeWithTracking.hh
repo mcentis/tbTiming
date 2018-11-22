@@ -51,8 +51,10 @@ private:
 
   Int_t _nTracks; // number of tracks in the event, it is 0 if no hit is reconstructed
   Float_t _hits[500][_nCh][3]; // hit position on the DUT planes (one for each oscilloscope channel)
-  Double_t* _pars; // parameters of the tracks
-
+  Double_t _pars[500][4]; // parameters of the tracks
+  Double_t _recoTrackChi2[500]; // track fit chi2 from the reconstruction SW of the beam telescope (not related to pars)
+  Int_t _recoNdetsInTrack[500]; // number of planes used in the track reconstruction by telescope SW (2 for each GEM plane, x and y treated separately)
+  
   // ============================= variables from conf file =====================
 
   float* _thr; // array with signal thresholds in V to select events in the analysis

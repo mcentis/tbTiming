@@ -53,7 +53,6 @@ AnalyzeWithTracking::~AnalyzeWithTracking(){
   delete[] _linRegT0;
   delete[] _integral;
   delete[] _tCFD;
-  delete[] _pars;
 
   delete[] _thr;
   delete[] _maxAmpliCut;
@@ -73,7 +72,6 @@ void AnalyzeWithTracking::AssociateBranches(){
   _tCFD = new Float_t[_nCh];
 
   _nTracks = 500;
-  _pars = new Double_t[4];
   
   _pulsePropTree->SetBranchAddress("event", &_event);
   _pulsePropTree->SetBranchAddress("ampli", _ampli);
@@ -88,6 +86,8 @@ void AnalyzeWithTracking::AssociateBranches(){
   _hitTree->SetBranchAddress("nTracks", &_nTracks);
   _hitTree->SetBranchAddress("hits", _hits);
   _hitTree->SetBranchAddress("trackPar", _pars);
+  _hitTree->SetBranchAddress("recoTrackChi2", _recoTrackChi2);
+  _hitTree->SetBranchAddress("recoNdetsInTrack", _recoNdetsInTrack);
 
   return;
 }
