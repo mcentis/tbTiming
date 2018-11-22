@@ -200,6 +200,7 @@ int main(int argc, char* argv[])
   Int_t ntracks;
   Int_t tracknumber;
   Double_t trackchi2;
+  Int_t ndetsintrack;
   std::vector<std::vector<double> >* hits = 0;
   std::vector<double>* distnextcluster = 0;
   std::vector<double>* totchanextcluster = 0;
@@ -210,6 +211,7 @@ int main(int argc, char* argv[])
   trackTree->SetBranchAddress("ntracks",&ntracks);
   trackTree->SetBranchAddress("tracknumber",&tracknumber);
   trackTree->SetBranchAddress("trackchi2",&trackchi2);
+  trackTree->SetBranchAddress("ndetsintrack",&ndetsintrack);
   trackTree->SetBranchAddress("hits",&hits);
   trackTree->SetBranchAddress("distnextcluster",&distnextcluster);
   trackTree->SetBranchAddress("totchanextcluster",&totchanextcluster);
@@ -291,14 +293,16 @@ int main(int argc, char* argv[])
   TTree* trackHitTree = new TTree("trackHitTree_tmp", "");
   Int_t nTracks = 500; // number of tracks in the event, it is 0 if no hit is reconstructed
   Float_t DUThits[nTracks][nCh][3]; // hit position on the DUT planes (one for each oscilloscope channel)
-  Double_t pars[4]; // parameters of the tracks
+  Double_t pars[nTracks][4]; // parameters of the tracks
   trackHitTree->Branch("cycle", &cycleTrack, "cycle/I");
   trackHitTree->Branch("nTrig", &nTrigTrackCorr, "nTrig/l");
   trackHitTree->Branch("nTracks", &nTracks, "nTracks/I");
   char prop[50];
   sprintf(prop, "hits[nTracks][%d][3]/F", nCh);
   trackHitTree->Branch("hits", DUThits, prop);
-  trackHitTree->Branch("trackPar", pars, "trackPar[4]/D");  
+  trackHitTree->Branch("trackPar", pars, "trackPar[nTracks][4]/D");  
+  // trackHitTree->Branch("recotrackchi2", &trackchi2);
+  // trackHitTree->Branch("ndetsintrack", &ndetsintrack);
   
   cycleTrack = -nCycle; // so that cycleTrack 0 in the tree corresponds to cycleScope 0 in the next tree
 
@@ -333,23 +337,23 @@ int main(int argc, char* argv[])
 	lineObj.addPoint(hits->at(recPlanes[iPlane]));
 
       // use hits on first plane (z=0) to set offsets and set slopes to 0
-      pars[0] = hits->at(0)[0];
-      pars[1] = 0;
-      pars[2] = hits->at(0)[1];
-      pars[3] = 0;
+      pars[nTracks][0] = hits->at(0)[0];
+      pars[nTracks][1] = 0;
+      pars[nTracks][2] = hits->at(0)[1];
+      pars[nTracks][3] = 0;
 
-      fitter.SetFCN(fcn, pars);
+      fitter.SetFCN(fcn, pars[nTracks]);
 
       if(fitter.FitFCN() != true) // do the fitting
 	std::cout << "Problem in track fitting!!!" << std::endl;
 
       const double* res = fitter.Result().GetParams(); // retrieve the parameters
       for(int j = 0; j < 4; ++j)
-	pars[j] = res[j];
+	pars[nTracks][j] = res[j];
       
       for(int iCh = 0; iCh < nCh; ++iCh){ // calculate hits on the planes
-	DUThits[nTracks][iCh][0] = pars[0] + pars[1] * dutPos[iCh];
-	DUThits[nTracks][iCh][1] = pars[2] + pars[3] * dutPos[iCh];
+	DUThits[nTracks][iCh][0] = pars[nTracks][0] + pars[nTracks][1] * dutPos[iCh];
+	DUThits[nTracks][iCh][1] = pars[nTracks][2] + pars[nTracks][3] * dutPos[iCh];
 	DUThits[nTracks][iCh][2] = dutPos[iCh];
 
 	//std::cout << DUThits[nTracks][iCh][0] << "  " << DUThits[nTracks][iCh][1] << "  " << DUThits[nTracks][iCh][2] <<std::endl;
@@ -416,7 +420,7 @@ int main(int argc, char* argv[])
   hitTree->Branch("nTracks", &nTracks, "nTracks/I");
   sprintf(prop, "hits[nTracks][%d][3]/F", nCh);
   hitTree->Branch("hits", DUThits, prop);
-  hitTree->Branch("trackPar", pars, "trackPar[4]/D");  
+  hitTree->Branch("trackPar", pars, "trackPar[nTracks][4]/D");  
 
   scopeTrigNumTree->SetBranchAddress("event", &event);
   trackHitTree->SetBranchAddress("nTracks", &nTracks);
