@@ -294,6 +294,8 @@ int main(int argc, char* argv[])
   Int_t nTracks = 500; // number of tracks in the event, it is 0 if no hit is reconstructed
   Float_t DUThits[nTracks][nCh][3]; // hit position on the DUT planes (one for each oscilloscope channel)
   Double_t pars[nTracks][4]; // parameters of the tracks
+  Double_t recoTrackChi2[nTracks]; // track fit chi2 from the reconstruction SW of the beam telescope (not related to pars)
+  Int_t recoNdetsInTrack[nTracks]; // number of planes used in the track reconstruction (2 for each GEM plane, x and y treated separately)
   trackHitTree->Branch("cycle", &cycleTrack, "cycle/I");
   trackHitTree->Branch("nTrig", &nTrigTrackCorr, "nTrig/l");
   trackHitTree->Branch("nTracks", &nTracks, "nTracks/I");
@@ -301,8 +303,8 @@ int main(int argc, char* argv[])
   sprintf(prop, "hits[nTracks][%d][3]/F", nCh);
   trackHitTree->Branch("hits", DUThits, prop);
   trackHitTree->Branch("trackPar", pars, "trackPar[nTracks][4]/D");  
-  // trackHitTree->Branch("recotrackchi2", &trackchi2);
-  // trackHitTree->Branch("ndetsintrack", &ndetsintrack);
+  trackHitTree->Branch("recoTrackChi2", recoTrackChi2, "recoTrackChi2[nTracks]/D");
+  trackHitTree->Branch("recoNdetsInTrack", recoNdetsInTrack, "recoNdetsInTrack[nTracks]/I");
   
   cycleTrack = -nCycle; // so that cycleTrack 0 in the tree corresponds to cycleScope 0 in the next tree
 
@@ -358,6 +360,9 @@ int main(int argc, char* argv[])
 
 	//std::cout << DUThits[nTracks][iCh][0] << "  " << DUThits[nTracks][iCh][1] << "  " << DUThits[nTracks][iCh][2] <<std::endl;
       }
+
+      recoTrackChi2[nTracks] = trackchi2;
+      recoNdetsInTrack[nTracks] = ndetsintrack;
       
       nTracks++;
       i++;
@@ -421,11 +426,15 @@ int main(int argc, char* argv[])
   sprintf(prop, "hits[nTracks][%d][3]/F", nCh);
   hitTree->Branch("hits", DUThits, prop);
   hitTree->Branch("trackPar", pars, "trackPar[nTracks][4]/D");  
+  hitTree->Branch("recoTrackChi2", recoTrackChi2, "recoTrackChi2[nTracks]/D");
+  hitTree->Branch("recoNdetsInTrack", recoNdetsInTrack, "recoNdetsInTrack[nTracks]/I");
 
   scopeTrigNumTree->SetBranchAddress("event", &event);
   trackHitTree->SetBranchAddress("nTracks", &nTracks);
   trackHitTree->SetBranchAddress("hits", DUThits);
   trackHitTree->SetBranchAddress("trackPar", pars);  
+  trackHitTree->SetBranchAddress("recoTrackChi2", recoTrackChi2);
+  trackHitTree->SetBranchAddress("recoNdetsInTrack", recoNdetsInTrack);
 
   std::cout << " Creating tree with tracking data ordered per oscilloscope event" << std::endl;
   
