@@ -124,6 +124,7 @@ int main(int argc, char* argv[])
   ReadCfgArray(recPlanes, "recPlanes", cfg, nRecPlanes);
   float* dutPos = new float[nCh];
   ReadCfgArray(dutPos, "dutPos", cfg, nCh);
+  unsigned long int startEvt = atoi(cfg->GetValue("startEvt").c_str()); // event from which start to read the oscilloscope tree (in case the tracking file does start later than the oscilloscope one, multiple tracking files for one run)
   
   long int nTrigScope; // from the oscilloscope waveform
   long int nTrigScopePrev; // trig number of previous entry
@@ -135,21 +136,28 @@ int main(int argc, char* argv[])
   int blpt; // number of point used in the baseline
   
   unsigned long int nEntriesScope = scopeTree->_wavTree->GetEntries();
+  if(startEvt > nEntriesScope){
+    std::cout << "[Error] startEvt bigger than the total tree length" << std::endl;
+    return 1;
+  }
+    
   unsigned long int maxEvt = 10000; // number of events used to find the right cycle between the oscilloscope and the tracking
-  if(maxEvt > nEntriesScope)
-    maxEvt = nEntriesScope;
+  if(maxEvt + startEvt > nEntriesScope)
+    maxEvt = nEntriesScope - startEvt;
 
+  maxEvt += startEvt;
+  
   std::cout << " Finding events for trees synchronization" << std::endl;
   
-  for(unsigned long int i = 0; i < maxEvt; ++i){ // first cycle on oscilloscope data to find the events above threshold
+  for(unsigned long int i = startEvt; i < maxEvt; ++i){ // first cycle on oscilloscope data to find the events above threshold
     scopeTree->_wavTree->GetEntry(i);
-    
+
     if((i+1) % 1000 == 0 || (i+1) == maxEvt)
       std::cout << " Processing event " << i+1 << " / " << maxEvt << "                             \r" << std::flush;
     
     nTrigScope = trigNum(scopeTree->_channels[trigCh], scopeTree->_npt, scopeTree->_time[1] - scopeTree->_time[0]);
 
-    if(i == 0)
+    if(i == startEvt)
       nTrigScopePrev = nTrigScope;
 
     if(cycleNumber(nTrigScopePrev, nTrigScope, cycleScope))// if there is a new cycle break, all the trigger numbers for alignment between trees must be in the same cycle
@@ -242,7 +250,7 @@ int main(int argc, char* argv[])
     if(cycleNumber(nTrigTrackPrev, nTrigTrack, cycleTrack)){ // if there is a new cycle, make a new hitmap
       sprintf(name, "hitmap_trackCycle%d", cycleTrack);
       sprintf(title, "Hitmap track cycle %d;X [mm];Y[mm];Entries", cycleTrack);
-      hitmap = new TH2I(name, title, 1000, 0, 100, 1000, -50, 50);
+      hitmap = new TH2I(name, title, 1000, 0, 100, 1000, 0, 100);
       hitVec.push_back(hitmap);
       match = false;
     }
@@ -398,7 +406,7 @@ int main(int argc, char* argv[])
 
   cycleScope = 0;
   
-  for(unsigned long int i = 0; i < nEntriesScope; ++i){
+  for(unsigned long int i = startEvt; i < nEntriesScope; ++i){
     scopeTree->_wavTree->GetEntry(i);
 
     if((i+1) % 1000 == 0 || (i+1) == nEntriesScope)
@@ -444,6 +452,8 @@ int main(int argc, char* argv[])
   trackHitTree->SetBranchAddress("recoNdetsInTrack", recoNdetsInTrack);
 
   std::cout << " Creating tree with tracking data ordered per oscilloscope event" << std::endl;
+
+  nEntriesScope -= startEvt; // the events skipped must be considered
   
   for(unsigned long int i = 0; i < nEntriesScope; ++i){
    scopeTrigNumTree->GetEntry(i);
