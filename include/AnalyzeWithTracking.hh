@@ -37,6 +37,7 @@ private:
   // ============================= variables for the trees ==================
   
   ULong64_t _event; // event number, needed by the tree
+  ULong64_t _eventCheck; // event number, saved in the hitTree, to check that the event is present in both trees
   UInt_t _nChTree; // number of channels as needed by the tree (cannot use _nCh directly)
 
   // pulse properties in tree

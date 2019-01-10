@@ -83,6 +83,7 @@ void AnalyzeWithTracking::AssociateBranches(){
   _pulsePropTree->SetBranchAddress("linRegT0", _linRegT0);
   _pulsePropTree->SetBranchAddress("tCFD", _tCFD);
 
+  _hitTree->SetBranchAddress("event", &_eventCheck);
   _hitTree->SetBranchAddress("nTracks", &_nTracks);
   _hitTree->SetBranchAddress("hits", _hits);
   _hitTree->SetBranchAddress("trackPar", _pars);
@@ -97,11 +98,16 @@ void AnalyzeWithTracking::Analyze(){
   
   long int nEntries = _pulsePropTree->GetEntries();
 
+  _eventCheck = std::numeric_limits<unsigned long int>::max(); // max of ULong64_t, to initialize the variable to a very improbable value
+  
   for(long int i = 0; i < nEntries; ++i){
     _pulsePropTree->GetEntry(i);
-
+ 
     if((i+1) % 1000 == 0 || (i+1) == nEntries)
       std::cout << " Processing event " << i+1 << " / " << nEntries << "                             \r" << std::flush;
+    
+    if(_event != _eventCheck) // if the event is present in both the trees, the values should be the same
+      continue;
     
     if(_nTracks != 1) // use only events with one track
       continue;
