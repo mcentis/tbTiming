@@ -414,7 +414,7 @@ int main(int argc, char* argv[])
     
     nTrigScope = trigNum(scopeTree->_channels[trigCh], scopeTree->_npt, scopeTree->_time[1] - scopeTree->_time[0]);
 
-    if(i == 0)
+    if(i == startEvt)
       nTrigScopePrev = nTrigScope;
 
     cycleNumber(nTrigScopePrev, nTrigScope, cycleScope);
@@ -443,7 +443,20 @@ int main(int argc, char* argv[])
   hitTree->Branch("recoTrackChi2", recoTrackChi2, "recoTrackChi2[nTracks]/D");
   hitTree->Branch("recoNdetsInTrack", recoNdetsInTrack, "recoNdetsInTrack[nTracks]/I");
 
+  // cycle and trig in the scope tree
+  int cycle = -1;
+  ULong64_t nTrig = std::numeric_limits<unsigned long int>::max();
+
+  // cycle and trig in the tracker tree, to check that the events are correctly synchronized
+  int cycleCheck = -1;
+  ULong64_t nTrigCheck = std::numeric_limits<unsigned long int>::max();
+
   scopeTrigNumTree->SetBranchAddress("event", &event);
+  scopeTrigNumTree->SetBranchAddress("cycle", &cycle);
+  scopeTrigNumTree->SetBranchAddress("nTrig", &nTrig);
+
+  trackHitTree->SetBranchAddress("cycle", &cycleCheck);
+  trackHitTree->SetBranchAddress("nTrig", &nTrigCheck);
   trackHitTree->SetBranchAddress("nTracks", &nTracks);
   trackHitTree->SetBranchAddress("hits", DUThits);
   trackHitTree->SetBranchAddress("trackPar", pars);  
@@ -461,6 +474,9 @@ int main(int argc, char* argv[])
     if((i+1) % 1000 == 0 || (i+1) == nEntriesScope)
       std::cout << " Processing event " << i+1 << " / " << nEntriesScope << "                             \r" << std::flush;
 
+    if(cycle != cycleCheck || nTrig != nTrigCheck) // exclude events that are not on both trees
+      continue;
+    
     hitTree->Fill();
   }
  
