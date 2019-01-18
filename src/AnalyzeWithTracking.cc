@@ -287,14 +287,14 @@ void AnalyzeWithTracking::InitializePlots(){
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "hitMap_Ch%d", iCh+1);
     sprintf(title, "Hit Map Ch%d;X [mm];Y [mm];Entries", iCh+1);
-    _hitMaps[iCh] = new TH2F(name, title, 200, 0, 100, 200, -50, 50);
+    _hitMaps[iCh] = new TH2F(name, title, 200, 0, 100, 200, 0, 100);
   }
 
   _hitMapsWithThr = new TH2F*[_nCh];
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "hitMapWithThr_Ch%d", iCh+1);
     sprintf(title, "Hit Map Ch%d %.2f < A < %.2f V;X [mm];Y [mm];Entries", iCh+1, _thr[iCh], _maxAmpliCut[iCh]);
-    _hitMapsWithThr[iCh] = new TH2F(name, title, 200, 0, 100, 200, -50, 50);
+    _hitMapsWithThr[iCh] = new TH2F(name, title, 200, 0, 100, 200, 0, 100);
   }
 
   _ampliVsX = new TH2F*[_nCh];
@@ -308,7 +308,7 @@ void AnalyzeWithTracking::InitializePlots(){
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "ampliVsY_Ch%d", iCh+1);
     sprintf(title, "Amplitude Ch%d vs Y, %.1f < X < %.1f mm;Y [mm];Amplitude [V];Entries", iCh+1, _xSliceLow[iCh], _xSliceHigh[iCh]);
-    _ampliVsY[iCh] = new TH2F(name, title, 500, -50, 50, 200, 0, 1);
+    _ampliVsY[iCh] = new TH2F(name, title, 500, 0, 100, 200, 0, 1);
   }
 
     _medianAmpliVsX = new MedianHist*[_nCh];
@@ -322,7 +322,7 @@ void AnalyzeWithTracking::InitializePlots(){
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "AmpliVsY_Ch%d", iCh+1);
     sprintf(title, "amplitude Ch%d vs Y, %.2f < A < %.2f V, %.1f < X < %.1f mm;Y [mm];Median Amplitude [V]", iCh+1, _thr[iCh], _maxAmpliCut[iCh],  _xSliceLow[iCh], _xSliceHigh[iCh]);
-    _medianAmpliVsY[iCh] = new MedianHist(name, title, 500, -50, 50);
+    _medianAmpliVsY[iCh] = new MedianHist(name, title, 500, 0, 100);
   }
   
   _effVsX = new TEfficiency*[_nCh];
@@ -336,7 +336,7 @@ void AnalyzeWithTracking::InitializePlots(){
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "effVsY_Ch%d", iCh+1);
     sprintf(title, "Efficiency Ch%d vs Y, THR %d mV, A < %.2f V, %.1f < X < %.1f mm;Y [mm];Efficiency", iCh+1, (int) (_thr[iCh] * 1000), _maxAmpliCut[iCh], _xSliceLow[iCh], _xSliceHigh[iCh]);
-    _effVsY[iCh] = new TEfficiency(name, title, 500, -50, 50);
+    _effVsY[iCh] = new TEfficiency(name, title, 500, 0, 100);
   }
 
   _riseTimeVsX = new TH2F*[_nCh];
@@ -350,14 +350,14 @@ void AnalyzeWithTracking::InitializePlots(){
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "riseTimeVsY_Ch%d", iCh+1);
     sprintf(title, "Risetime Ch%d vs Y, %.1f < X < %.1f mm, %.2f < A < %.2f V;Y [mm];Risetime [s];Entries", iCh+1, _xSliceLow[iCh], _xSliceHigh[iCh], _thr[iCh], _maxAmpliCut[iCh]);
-    _riseTimeVsY[iCh] = new TH2F(name, title, 500, -50, 50, 500, 0, 10e-9);
+    _riseTimeVsY[iCh] = new TH2F(name, title, 500, 0, 100, 500, 0, 10e-9);
   }
 
   _riseTimeMap = new MeanStdDevMap*[_nCh];
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "RiseTime_Ch%d", iCh+1);
     sprintf(title, "Risetime Ch%d, %.2f < A < %.2f V;X [mm];Y [mm];Risetime [s]", iCh+1, _thr[iCh], _maxAmpliCut[iCh]);
-    _riseTimeMap[iCh] = new MeanStdDevMap(name, title, 200, 0, 100, 200, -50, 50);
+    _riseTimeMap[iCh] = new MeanStdDevMap(name, title, 200, 0, 100, 200, 0, 100);
   }
 
   _dtCFDVsX = new TH2F**[_nPairs];
@@ -424,14 +424,14 @@ void AnalyzeWithTracking::InitializePlots(){
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "AmpliMap_Ch%d", iCh+1);
     sprintf(title, "amplitude Map Ch%d, %.2f < A < %.2f V;X [mm];Y [mm];Median Amplitude [V]", iCh+1, _thr[iCh], _maxAmpliCut[iCh]);
-    _ampliMap[iCh] = new MedianMap(name, title, 200, 0, 100, 200, -50, 50);
+    _ampliMap[iCh] = new MedianMap(name, title, 200, 0, 100, 200, 0, 100);
   }
   
   _effMap = new TEfficiency*[_nCh];
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "effMap_Ch%d", iCh+1);
     sprintf(title, "Efficiency Map Ch%d, THR %d mV, A < %.2f V;X [mm];Y [mm];Efficiency", iCh+1, (int) (_thr[iCh] * 1000), _maxAmpliCut[iCh]);
-    _effMap[iCh] = new TEfficiency(name, title, 500, 0, 100, 500, -50, 50);
+    _effMap[iCh] = new TEfficiency(name, title, 500, 0, 100, 500, 0, 100);
   }
 
   _dtCFDMap = new MeanStdDevMap**[_nPairs];
@@ -440,7 +440,7 @@ void AnalyzeWithTracking::InitializePlots(){
     for(int j = 0; j < 2; ++j){
       sprintf(name, "DtCFDMap_Ch%d-%d_onCh%d", _pairs[i][0] + 1, _pairs[i][1] + 1, _pairs[i][j] + 1);
       sprintf(title, "#Delta t CFD Ch%d - Ch%d plane Ch%d ampli cut for both Ch;X [mm];Y [mm];#Delta t [s]", _pairs[i][0]+1, _pairs[i][1]+1, _pairs[i][j]+1);
-      _dtCFDMap[i][j] = new MeanStdDevMap(name, title, 200, 0, 100, 200, -50, 50);
+      _dtCFDMap[i][j] = new MeanStdDevMap(name, title, 200, 0, 100, 200, 0, 100);
     }
   }
 
