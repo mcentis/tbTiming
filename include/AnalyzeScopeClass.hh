@@ -63,9 +63,6 @@ public: // made these public since they are needed by the analysis objects
 
   float* _termination; // oscilloscope termination, in Ohms
 
-  float* _inteStart; // start time for integration, relative to the _linRegT0
-  float* _inteStop; // stop time for integration, relative to the _linRegT0
-
   // variables for fine selection of the signal region based on the position of the peak of the signal
   // the intervals will be : blDuration, prePeak, (peaking point determined in analysis), postPeak
   float* _blDuration; // baseline interval duration
