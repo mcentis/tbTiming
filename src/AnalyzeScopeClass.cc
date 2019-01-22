@@ -161,6 +161,7 @@ void AnalyzeScopeClass::GetCfgValues(){
   ReadCfgArray(_sigStop, "signalStop");
   ReadCfgArray(_termination, "termination");
   ReadCfgArray(_inteStart, "inteStart");
+  ReadCfgArray(_inteStop, "inteStop");
   ReadCfgArray(_blDuration, "blDuration");
   ReadCfgArray(_prePeak, "prePeak");
   ReadCfgArray(_postPeak, "postPeak");
@@ -497,6 +498,7 @@ void AnalyzeScopeClass::CalcIntegral(){
     }
 
     _integral[iCh] = AnalysisPrototype::Integrate(_sigPoints[iCh], _sigTime[iCh], _linRegT0[iCh] + _inteStart[iCh], _linRegT0[iCh] + _inteStop[iCh], _baseline[iCh]);
+    //_integral[iCh] = AnalysisPrototype::Integrate(_sigPoints[iCh], _sigTime[iCh], *(_sigTime[iCh].begin() + 1), *(_sigTime[iCh].end() - 1), _baseline[iCh]);
     _integral[iCh] /= _termination[iCh]; // from [Vs] to [C]
   }
   
