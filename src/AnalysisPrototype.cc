@@ -275,6 +275,9 @@ float AnalysisPrototype::Integrate(const std::vector<float>& tra, const std::vec
   float integral = 0;
   float dt;
 
+  if(tra.size() != tim.size() || tra.size() == 0) // check that the vector have same length and that the lenght is not 0 to avoid errors in the assignment of itVolt and itTime
+    return integral;
+  
   std::vector<float>::const_iterator itVolt = tra.begin() + 1; // add 1 to make sure that everything is well defined when looking for itVolt - 1
   std::vector<float>::const_iterator itTime = tim.begin() + 1;
   for(; itVolt != tra.end() && itTime != tim.end(); ++itVolt, ++itTime)
