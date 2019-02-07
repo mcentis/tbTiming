@@ -393,8 +393,6 @@ void AnalyzeScopeClass::CalcAmpliTime(){ // CalcBaselineNoise() should be called
     _ampli[iCh] = -5; // start value
     _ampliTime[iCh] = -5; // start value
 
-    //int ptPos = -1;
-    
     for(unsigned int ipt = 0; ipt < _sigPoints[iCh].size(); ++ipt)
       if(_sigPoints[iCh][ipt] > _ampli[iCh]){
 	_ampli[iCh] = _sigPoints[iCh][ipt];
@@ -402,10 +400,13 @@ void AnalyzeScopeClass::CalcAmpliTime(){ // CalcBaselineNoise() should be called
 	_ampliTimeIndex[iCh] = ipt;
       }
 
-    // // =================================================
-    // // interpolation using points near maximum
-    // // function y = a x**2 + b x + c
-    // int ptPos = _ampliTimeIndex[iCh];
+    // =================================================
+    // interpolation using points near maximum
+    // function y = a x**2 + b x + c
+    // unsigned int ptPos = _ampliTimeIndex[iCh];
+    // if(ptPos == 0 || ptPos == _sigPoints[iCh].size()) // protect the extremes of the vector
+    //   continue;      
+    
     // float y1 = _sigPoints[iCh][ptPos - 1];
     // float y2 = _sigPoints[iCh][ptPos];
     // float y3 = _sigPoints[iCh][ptPos + 1];
@@ -421,10 +422,13 @@ void AnalyzeScopeClass::CalcAmpliTime(){ // CalcBaselineNoise() should be called
 
     // _ampliTime[iCh] = -b/(2*a);
 
-    // //======================================================
-    
-    _ampli[iCh] -= _baseline[iCh];
+    //======================================================
   }  
+
+  // correct baseline
+  for(int iCh = 0; iCh < _nCh; ++iCh)
+    _ampli[iCh] -= _baseline[iCh];
+
   
   return;
 }
