@@ -329,14 +329,14 @@ void AnalyzeWithTracking::InitializePlots(){
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "effVsX_Ch%d", iCh+1);
     sprintf(title, "Efficiency Ch%d vs X, THR %d mV, A < %.2f V, %.1f < Y < %.1f mm;X [mm];Efficiency", iCh+1, (int) (_thr[iCh] * 1000), _maxAmpliCut[iCh], _ySliceLow[iCh], _ySliceHigh[iCh]);
-    _effVsX[iCh] = new TEfficiency(name, title, 500, 0, 100);
+    _effVsX[iCh] = new TEfficiency(name, title, 200, 0, 100);
   }
 
   _effVsY = new TEfficiency*[_nCh];
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "effVsY_Ch%d", iCh+1);
     sprintf(title, "Efficiency Ch%d vs Y, THR %d mV, A < %.2f V, %.1f < X < %.1f mm;Y [mm];Efficiency", iCh+1, (int) (_thr[iCh] * 1000), _maxAmpliCut[iCh], _xSliceLow[iCh], _xSliceHigh[iCh]);
-    _effVsY[iCh] = new TEfficiency(name, title, 500, 0, 100);
+    _effVsY[iCh] = new TEfficiency(name, title, 200, 0, 100);
   }
 
   _riseTimeVsX = new TH2F*[_nCh];
