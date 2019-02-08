@@ -46,6 +46,9 @@ void AnalysisPrototype::Process()
 
 float AnalysisPrototype::CalcTimeThrLinear2pt(const std::vector<float>& tra, const std::vector<float>& tim, float thr, float offset)
 {
+  if(tra.size() != tim.size() || tra.size() == 0) // check that the vector have same length and that the lenght is not 0 to avoid errors in the assignment of itVolt and itTime
+    return 10;
+  
   unsigned int i = 0;
   for(; i < tra.size(); ++i)
     if(tra[i] - offset > thr) break;
