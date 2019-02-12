@@ -97,6 +97,7 @@ private:
   MedianMap** _ampliMap; // 2D median amplitude map, threshold is used, saturation is removed
   TEfficiency** _effMap; // 2D efficiency map, threshold as for timing, saturation is removed
   MeanStdDevMap*** _dtCFDMap; // 2D mean and std dev maps, threshold for timing and removed saturation
+  TH1F** _ampliDistr; // amplitude distribution, geometrical cuts for each channel
   TH1F** _riseTimeDistr; // distribution of risetime for each ch, same selection used for dtCFD distribution, but applied to each ch separately
   TH1F** _dtCFDdistr; // distribution of dt for each timing pair, CFD, threshold, max ampli cut, both x and y slices cuts are used
   TH1F** _dtCFDdistrRiseCut; // distribution of dt for each timing pair, CFD, threshold, max ampli cut, both x and y slices cuts are used, also risetime cuts are used
