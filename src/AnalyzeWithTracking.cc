@@ -436,7 +436,7 @@ void AnalyzeWithTracking::InitializePlots(){
   for(int iCh = 0; iCh < _nCh; ++iCh){
     sprintf(name, "effMap_Ch%d", iCh+1);
     sprintf(title, "Efficiency Map Ch%d, THR %d mV, A < %.2f V;X [mm];Y [mm];Efficiency", iCh+1, (int) (_thr[iCh] * 1000), _maxAmpliCut[iCh]);
-    _effMap[iCh] = new TEfficiency(name, title, 500, 0, 100, 500, 0, 100);
+    _effMap[iCh] = new TEfficiency(name, title, 200, 0, 100, 200, 0, 100);
   }
 
   _dtCFDMap = new MeanStdDevMap**[_nPairs];
