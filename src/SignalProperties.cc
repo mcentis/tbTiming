@@ -49,7 +49,7 @@ SignalProperties::SignalProperties(AnalyzeScopeClass* acl, const char* dirName)
     _ampliTimeDistr[iCh] = new TH1F(name, title, 3001, -0.1e-9, 300.1e-9); // 100 ps bins
 
     sprintf(name, "integralDistr_inst%d_Ch%d",_instanceNumber, iCh+1);
-    sprintf(title, "Integral Ch%d (at least 2 pt between 20%% and 80%%);Integral [C];Entries", iCh+1);
+    sprintf(title, "Integral Ch%d;Integral [C];Entries", iCh+1);
     _integralDistr[iCh] = new TH1F(name, title, 220, -0.1e-10, 1e-10); // 5e-13 C bins 
 
     sprintf(name, "inteAmpli_inst%d_Ch%d",_instanceNumber, iCh+1);
