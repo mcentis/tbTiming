@@ -30,7 +30,7 @@ private:
   void SelectRisingEdge(); // get rising edge from signal points: from peak position till 3% of amplitude from baseline
   void CalcRiseTimeT0(); // calculate 20 to 80% rise time and t0 using linear regression of rising edge between 20 and 80 %
   void CalcIntegral(); // integrates the signal, needs the baseline, selected points, and t0
-  void CalcTcfd(); // calculation of the CFD threhsold crossing, thresholds from cfg file
+  void CalcTcfd(); // calculation of the CFD threhsold crossing, thresholds from cfg file, and threshold vector
   
   ConfigFileReader* _cfg;
 
@@ -85,6 +85,11 @@ public: // made these public since they are needed by the analysis objects
   float* _linRegT0; // event time used to "align" the events while using signal superimposition, could be used for additional cuts (e.g. ampli after t0), this variable is set to 10 if there are not enough points to determine the t0 using a linear regression
   float* _integral; // integral of the signals, in C
   float* _tCFD; // time when the CFD threshold from cfg file is crossed
+
+  // variables to have an array of crossing times for each channel
+  static const int _nThr = 19; // number of thresholds used  
+  float* _CFDvecThr; // array with CFD threhsold values
+  float** _tCFDvec; // array with crossing times for all the channels and all the thresholds
   
   // containers for baseline, signal points and signal time
   std::vector<float>* _blPoints;

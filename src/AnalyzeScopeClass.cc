@@ -37,6 +37,14 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _risePoints = new int[_nCh];
   _linRegT0 = new float[_nCh];
   _tCFD = new float[_nCh];
+
+  _CFDvecThr = new float[_nThr];
+  for(int i = 0; i < _nThr; i++)
+    _CFDvecThr[i] = 0.05 + i * 0.05;
+
+  _tCFDvec = new float*[_nCh];
+  for(int i = 0; i < _nCh; ++i)
+    _tCFDvec[i] = new float[_nThr];
   
   _blStart = new float[_nCh];
   _blStop = new float[_nCh];
@@ -84,7 +92,13 @@ AnalyzeScopeClass::AnalyzeScopeClass(const char* inFileName, const char* confFil
   _evtPropTree->Branch("integral", _integral, "integral[nCh]/F");
   _evtPropTree->Branch("linRegT0", _linRegT0, "linRegT0[nCh]/F");
   _evtPropTree->Branch("tCFD", _tCFD, "tCFD[nCh]/F");
-    
+
+  char varDescription[50];
+  sprintf(varDescription, "CFDvecThr[%i]/F", _nThr);
+  _evtPropTree->Branch("CFDvecThr", _CFDvecThr, varDescription);
+  sprintf(varDescription, "tCFDvec[nCh][%i]/F", _nThr);
+  _evtPropTree->Branch("tCFDvec", *_tCFDvec, varDescription);
+  
   // create analysis objects without cuts
   _analysisWithoutCuts.push_back(new SignalProperties(this, "SignalPropertiesNoCuts"));
 
@@ -118,6 +132,8 @@ AnalyzeScopeClass::~AnalyzeScopeClass(){
   delete[] _risePoints;
   delete[] _linRegT0;
   delete[] _tCFD;
+  delete[] _CFDvecThr;
+  delete[] _tCFDvec;
   delete[] _blStart;
   delete[] _blStop;
   delete[] _sigStart;
@@ -231,7 +247,7 @@ void AnalyzeScopeClass::Analyze(){
     CalcRiseTimeT0();
     CalcIntegral();
     CalcTcfd();
-    
+
     _event = _scopeTreeInter->_event;
     _evtPropTree->Fill(); // fill event properties
     
@@ -483,7 +499,11 @@ void AnalyzeScopeClass::CalcTcfd(){
   for(int iCh = 0; iCh < _nCh; ++iCh)
     //_tCFD[iCh] = AnalysisPrototype::CalcTimeThrLinear2ptToTcheck(_leadPoints[iCh], _leadTime[iCh], _constFrac[iCh] * _ampli[iCh], _baseline[iCh], _ToT[iCh]);
     _tCFD[iCh] = AnalysisPrototype::CalcTimeThrLinear2pt(_leadPoints[iCh], _leadTime[iCh], _constFrac[iCh] * _ampli[iCh], _baseline[iCh]);
-  
+
+    for(int iCh = 0; iCh < _nCh; ++iCh)
+      for(int iThr = 0; iThr < _nThr; ++iThr)
+	_tCFDvec[iCh][iThr] = AnalysisPrototype::CalcTimeThrLinear2pt(_leadPoints[iCh], _leadTime[iCh], _CFDvecThr[iThr] * _ampli[iCh], _baseline[iCh]);
+    
   return;
 }
 
